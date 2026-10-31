@@ -1,0 +1,34 @@
+{
+  "name": "beauty-oil-market",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "A production-ready e-commerce platform for a small-batch beauty oil business.",
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "scripts": {
+    "dev": "concurrently -n api,web -c green,magenta \"npm:dev:backend\" \"npm:dev:frontend\"",
+    "dev:demo": "concurrently -n api,web -c green,magenta \"npm run dev:memory --workspace backend\" \"npm:dev:frontend\"",
+    "dev:backend": "npm run dev --workspace backend",
+    "dev:frontend": "npm run dev --workspace frontend",
+    "build": "npm run build --workspace frontend",
+    "start": "npm run start --workspace backend",
+    "test": "npm run test --workspace backend",
+    "lint": "eslint frontend/src backend/src backend/test backend/scripts eslint.config.js",
+    "seed:admin": "npm run seed:admin --workspace backend"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.5",
+    "concurrently": "^10.0.6",
+    "eslint": "^9.39.5",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.7",
+    "globals": "^17.13.0"
+  }
+}

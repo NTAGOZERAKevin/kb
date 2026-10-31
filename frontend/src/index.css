@@ -1,0 +1,86 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: 'Manrope', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Cormorant Garamond', Georgia, serif;
+
+  --color-ivory: #fbf8f2;
+  --color-sand: #f0e8db;
+  --color-forest: #173b32;
+  --color-forest-light: #245347;
+  --color-forest-dark: #0e2a23;
+  --color-moss: #5b705c;
+  --color-clay: #c87d5a;
+  --color-gold: #c7a46b;
+  --color-gold-light: #d9bd8e;
+  --color-ink: #1c2420;
+
+  --shadow-soft: 0 24px 80px -32px rgba(14, 42, 35, 0.4);
+}
+
+@layer base {
+  html {
+    color-scheme: light;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-ivory font-sans text-ink antialiased;
+    margin: 0;
+    min-width: 320px;
+  }
+
+  button,
+  a {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  ::selection {
+    background: rgba(199, 164, 107, 0.35);
+    color: #0e2a23;
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(22px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-9px);
+  }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-float {
+  animation: float 5s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
