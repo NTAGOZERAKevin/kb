@@ -11,7 +11,8 @@ export function GuestRoute({ children }) {
   }
 
   if (user) {
-    return <Navigate to={location.state?.from?.pathname || '/profile'} replace />;
+    const fallback = user.role === 'admin' ? '/admin' : '/profile';
+    return <Navigate to={location.state?.from?.pathname || fallback} replace />;
   }
 
   return children;

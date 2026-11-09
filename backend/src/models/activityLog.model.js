@@ -1,40 +1,20 @@
-import mongoose from 'mongoose';
+import { randomUUID } from 'node:crypto';
+import { query } from '../config/db.js';
+import { isUuid } from '../db/rows.js';
 
-const activityLogSchema = new mongoose.Schema(
-  {
-    user: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-      index: true,
-    },
-    action: {
-      type: String,
-      required: true,
-      trim: true,
-      index: true,
-    },
-    ip: {
-      type: String,
-      trim: true,
-    },
-    userAgent: {
-      type: String,
-      trim: true,
-      maxlength: 300,
-    },
-    metadata: {
-      type: mongoose.Schema.Types.Mixed,
-      default: undefined,
-    },
-    createdAt: {
-      type: Date,
-      default: Date.now,
-      expires: 60 * 60 * 24 * 180,
-    },
+export const ActivityLog = {
+  async create({ userId, action, ip, userAgent, metadata }) {
+    await query(
+      `insert into activity_logs (id, user_id, action, ip, user_agent, metadata)
+       values ($1, $2, $3, $4, $5, $6)`,
+      [
+        randomUUID(),
+        isUuid(userId) ? userId : null,
+        action,
+        ip ?? null,
+        userAgent ?? null,
+        metadata ? JSON.stringify(metadata) : null,
+      ],
+    );
   },
-  {
-    versionKey: false,
-  },
-);
-
-export const ActivityLog = mongoose.model('ActivityLog', activityLogSchema);
+};

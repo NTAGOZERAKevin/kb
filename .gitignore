@@ -11,4 +11,5 @@ Thumbs.db
 .vscode/
 .idea/
 .mongodb-binaries/
+backend/uploads/
  /node_modules

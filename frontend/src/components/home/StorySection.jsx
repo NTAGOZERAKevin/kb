@@ -19,7 +19,7 @@ export function StorySection() {
               className="aspect-[4/5] size-full object-cover"
             />
           </div>
-          <div className="absolute -bottom-5 -right-3 max-w-48 rounded-[1.5rem] border border-forest/10 bg-ivory p-5 shadow-soft sm:-right-8">
+          <div className="absolute -bottom-5 -right-3 max-w-48 rounded-[1.5rem] border border-forest/10 bg-surface p-5 shadow-soft sm:-right-8">
             <p className="font-display text-3xl font-semibold text-forest">Small batch</p>
             <p className="mt-1 text-xs leading-5 text-ink/50">
               Blended in limited quantities for freshness and care.

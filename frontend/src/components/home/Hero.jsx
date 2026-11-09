@@ -77,7 +77,7 @@ export function Hero() {
             </div>
           </div>
 
-          <div className="absolute -left-5 top-20 hidden animate-float rounded-2xl bg-ivory p-4 text-forest shadow-soft sm:block">
+          <div className="absolute -left-5 top-20 hidden animate-float rounded-2xl bg-surface p-4 text-forest shadow-soft sm:block">
             <div className="flex items-center gap-1 text-gold">
               {Array.from({ length: 5 }).map((_, index) => (
                 <Star key={index} className="size-3 fill-current" aria-hidden="true" />

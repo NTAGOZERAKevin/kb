@@ -56,6 +56,12 @@ export function AuthProvider({ children }) {
     return registeredUser;
   }
 
+  async function updateProfile(payload) {
+    const updatedUser = await authService.updateProfile(payload);
+    setUser(updatedUser);
+    return updatedUser;
+  }
+
   async function logout() {
     try {
       await authService.logout();
@@ -70,6 +76,7 @@ export function AuthProvider({ children }) {
     isAuthenticated: Boolean(user),
     login,
     register,
+    updateProfile,
     logout,
   };
 

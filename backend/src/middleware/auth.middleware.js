@@ -44,6 +44,28 @@ export async function protect(req, _res, next) {
   }
 }
 
+export async function optionalProtect(req, _res, next) {
+  try {
+    const token = getRequestToken(req);
+
+    if (!token) {
+      next();
+      return;
+    }
+
+    const payload = verifyAccessToken(token);
+    const user = await User.findById(payload.sub);
+
+    if (user?.isActive) {
+      req.user = user;
+    }
+  } catch {
+    req.user = undefined;
+  }
+
+  next();
+}
+
 export function authorize(...roles) {
   return function authorizeRoles(req, _res, next) {
     if (!req.user || !roles.includes(req.user.role)) {

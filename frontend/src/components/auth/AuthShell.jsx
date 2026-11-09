@@ -4,7 +4,7 @@ import { Logo } from '../layout/Logo.jsx';
 
 export function AuthShell({ eyebrow, title, subtitle, children, footer }) {
   return (
-    <div className="min-h-screen bg-ivory lg:grid lg:grid-cols-[1.05fr_1fr]">
+    <div className="min-h-screen bg-surface lg:grid lg:grid-cols-[1.05fr_1fr]">
       <aside className="relative m-4 hidden min-h-[calc(100vh-2rem)] overflow-hidden rounded-[2.5rem] bg-forest lg:block">
         <img
           src="https://images.unsplash.com/photo-1556228578-8c89e6adf883?auto=format&fit=crop&w=1400&q=85"

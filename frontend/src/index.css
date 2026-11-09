@@ -1,10 +1,14 @@
 @import 'tailwindcss';
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --font-sans: 'Manrope', ui-sans-serif, system-ui, sans-serif;
   --font-display: 'Cormorant Garamond', Georgia, serif;
 
   --color-ivory: #fbf8f2;
+  --color-surface: #fbf8f2;
+  --color-card: #ffffff;
   --color-sand: #f0e8db;
   --color-forest: #173b32;
   --color-forest-light: #245347;
@@ -25,7 +29,7 @@
   }
 
   body {
-    @apply bg-ivory font-sans text-ink antialiased;
+    @apply bg-surface font-sans text-ink antialiased;
     margin: 0;
     min-width: 320px;
   }
@@ -39,6 +43,37 @@
     background: rgba(199, 164, 107, 0.35);
     color: #0e2a23;
   }
+}
+
+html.dark {
+  color-scheme: dark;
+  --color-surface: #101713;
+  --color-card: #151d19;
+  --color-sand: #1a231e;
+  --color-forest: #d6e5dc;
+  --color-forest-light: #b6cdc0;
+  --color-forest-dark: #08110d;
+  --color-moss: #93a894;
+  --color-clay: #e3a17b;
+  --color-gold: #d9bd8e;
+  --color-gold-light: #e7d2ab;
+  --color-ink: #e7eee9;
+}
+
+html.dark body {
+  background-color: #0c1210;
+}
+
+html.dark .bg-forest {
+  background-color: #173b32;
+}
+
+html.dark .hover\:bg-forest:hover {
+  background-color: #173b32;
+}
+
+html.dark .hover\:bg-forest-light:hover {
+  background-color: #245347;
 }
 
 @keyframes fade-up {
@@ -68,6 +103,178 @@
 
 .animate-float {
   animation: float 5s ease-in-out infinite;
+}
+
+@keyframes grow-bar {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes grow-up {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+@keyframes draw-line {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes pop-in {
+  0% {
+    opacity: 0;
+    transform: scale(0);
+  }
+  70% {
+    transform: scale(1.35);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes halo-pulse {
+  0%,
+  100% {
+    opacity: 0.15;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.4;
+    transform: scale(1.6);
+  }
+}
+
+@keyframes shimmer {
+  from {
+    background-position: -200% 0;
+  }
+  to {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes gradient-pan {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes pulse-ring {
+  0% {
+    box-shadow: 0 0 0 0 rgba(199, 164, 107, 0.45);
+  }
+  70% {
+    box-shadow: 0 0 0 12px rgba(199, 164, 107, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(199, 164, 107, 0);
+  }
+}
+
+@keyframes float-slow {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(0, -18px, 0) scale(1.03);
+  }
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(26px);
+  transition:
+    opacity 0.75s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity, transform;
+}
+
+.reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.chart-line {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: draw-line 1.6s cubic-bezier(0.22, 1, 0.36, 1) 0.2s forwards;
+}
+
+.chart-area {
+  opacity: 0;
+  animation: fade-in 1s ease 0.7s forwards;
+}
+
+.chart-dot,
+.chart-dot-halo {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.chart-dot {
+  animation: pop-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.chart-dot-halo {
+  animation: halo-pulse 2.8s ease-in-out infinite;
+}
+
+.donut-segment {
+  opacity: 0;
+  animation: fade-in 0.7s ease both;
+}
+
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient-pan 9s ease infinite;
+}
+
+.animate-float-slow {
+  animation: float-slow 9s ease-in-out infinite;
+}
+
+.animate-pulse-ring {
+  animation: pulse-ring 2.4s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+
+html.dark .skeleton {
+  background: linear-gradient(90deg, rgba(231, 238, 233, 0.06) 25%, rgba(231, 238, 233, 0.12) 37%, rgba(231, 238, 233, 0.06) 63%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s linear infinite;
+}
+
+.skeleton {
+  background: linear-gradient(90deg, rgba(23, 59, 50, 0.06) 25%, rgba(23, 59, 50, 0.12) 37%, rgba(23, 59, 50, 0.06) 63%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s linear infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {

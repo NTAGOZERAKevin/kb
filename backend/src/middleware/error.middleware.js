@@ -8,22 +8,28 @@ export function notFound(req, _res, next) {
 export function errorHandler(error, _req, res, _next) {
   let normalizedError = error;
 
-  if (error.name === 'CastError') {
-    normalizedError = new ApiError(400, 'The requested resource identifier is invalid');
-  } else if (error.code === 11000) {
-    const field = Object.keys(error.keyValue || {})[0] || 'field';
-    normalizedError = new ApiError(409, `An account with this ${field} already exists`);
-  } else if (error.name === 'ValidationError') {
+  if (error.code === '23505') {
     normalizedError = new ApiError(
-      422,
-      'Please correct the highlighted fields',
-      Object.values(error.errors).map((item) => ({
-        field: item.path,
-        message: item.message,
-      })),
+      409,
+      String(error.constraint || '').includes('email')
+        ? 'An account with this email already exists'
+        : 'That value is already in use',
     );
+  } else if (error.code === '23503') {
+    normalizedError = new ApiError(400, 'That record is linked to missing data');
+  } else if (error.code === '23514') {
+    normalizedError = new ApiError(422, 'Please correct the highlighted fields');
+  } else if (error.code === '22P02') {
+    normalizedError = new ApiError(400, 'The requested resource identifier is invalid');
   } else if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
     normalizedError = new ApiError(401, 'Your session is invalid or has expired');
+  } else if (error.name === 'MulterError') {
+    normalizedError = new ApiError(
+      error.code === 'LIMIT_FILE_SIZE' ? 413 : 400,
+      error.code === 'LIMIT_FILE_SIZE'
+        ? 'Images must be 5MB or smaller'
+        : 'We could not process that upload',
+    );
   } else if (error.type === 'entity.parse.failed') {
     normalizedError = new ApiError(400, 'The request body contains invalid JSON');
   } else if (error.type === 'entity.too.large') {

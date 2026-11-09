@@ -1,12 +1,12 @@
 export const categories = [
   {
-    name: 'Face Rituals',
+    name: 'Face Care',
     description: 'Featherlight botanical oils for a calm, balanced, luminous complexion.',
     image:
       'https://images.unsplash.com/photo-1612817288484-6f916006741a?auto=format&fit=crop&w=1000&q=80',
   },
   {
-    name: 'Hair & Scalp',
+    name: 'Hair Care',
     description: 'Deeply nourishing blends for stronger-looking hair and a healthier scalp.',
     image:
       'https://images.unsplash.com/photo-1519699047748-de8e457a634e?auto=format&fit=crop&w=1000&q=80',
@@ -23,7 +23,7 @@ export const featuredProducts = [
   {
     id: 'golden-hour-face-oil',
     name: 'Golden Hour Face Oil',
-    category: 'Face Ritual',
+    category: 'Face Care',
     price: 24500,
     rating: 4.9,
     reviewCount: 38,
@@ -35,7 +35,7 @@ export const featuredProducts = [
   {
     id: 'scalp-revival-oil',
     name: 'Scalp Revival Oil',
-    category: 'Hair Ritual',
+    category: 'Hair Care',
     price: 19500,
     rating: 4.8,
     reviewCount: 24,
@@ -47,7 +47,7 @@ export const featuredProducts = [
   {
     id: 'silk-body-oil',
     name: 'Silk Body Oil',
-    category: 'Body Ritual',
+    category: 'Body Care',
     price: 22000,
     rating: 5.0,
     reviewCount: 31,
@@ -58,7 +58,7 @@ export const featuredProducts = [
   {
     id: 'midnight-repair-oil',
     name: 'Midnight Repair Oil',
-    category: 'Face Ritual',
+    category: 'Face Care',
     price: 27500,
     rating: 4.9,
     reviewCount: 19,

@@ -1,19 +1,20 @@
 import assert from 'node:assert/strict';
 import { after, before, beforeEach, describe, test } from 'node:test';
-import mongoose from 'mongoose';
-import { MongoMemoryServer } from 'mongodb-memory-server';
 import request from 'supertest';
 
 process.env.NODE_ENV = 'test';
 process.env.JWT_SECRET = 'test-secret-that-is-longer-than-thirty-two-characters';
-process.env.MONGODB_URI = 'mongodb://127.0.0.1:27017/beauty-oil-market-test';
 process.env.CLIENT_URL = 'http://localhost:5173';
-process.env.MONGOMS_VERSION ||= '7.0.14';
+
+const testDatabaseUrl = process.env.TEST_DATABASE_URL || '';
+process.env.DATABASE_URL = testDatabaseUrl || 'postgresql://localhost:5432/beauty-oil-market-test';
+
+// These tests truncate tables, so they only run against an explicit test database.
+const suite = testDatabaseUrl ? describe : describe.skip;
 
 let app;
-let mongod;
+let pool;
 let User;
-let ActivityLog;
 
 const registration = {
   name: 'Amina Test',
@@ -23,33 +24,30 @@ const registration = {
   phone: '+250788123456',
 };
 
-before(async () => {
-  mongod = await MongoMemoryServer.create();
-  const { connectDB } = await import('../src/config/db.js');
-  await connectDB(mongod.getUri());
+suite('Beauty Oil Market API', () => {
+  before(async () => {
+    const { connectDB, getPool } = await import('../src/config/db.js');
+    const { migrate } = await import('../src/db/migrate.js');
 
-  const appModule = await import('../src/app.js');
-  const userModule = await import('../src/models/user.model.js');
-  const activityModule = await import('../src/models/activityLog.model.js');
+    await connectDB();
+    await migrate();
 
-  app = appModule.default;
-  User = userModule.User;
-  ActivityLog = activityModule.ActivityLog;
-});
+    pool = getPool();
+    app = (await import('../src/app.js')).default;
+    User = (await import('../src/models/user.model.js')).User;
+  });
 
-beforeEach(async () => {
-  await User.deleteMany({});
-  await ActivityLog.deleteMany({});
-});
+  beforeEach(async () => {
+    await pool.query(
+      'truncate table activity_logs, notifications, orders, reviews, products, users restart identity cascade',
+    );
+  });
 
-after(async () => {
-  await mongoose.disconnect();
-  if (mongod) {
-    await mongod.stop();
-  }
-});
+  after(async () => {
+    const { disconnectDB } = await import('../src/config/db.js');
+    await disconnectDB();
+  });
 
-describe('API health', () => {
   test('reports a healthy API and database connection', async () => {
     const response = await request(app).get('/api/v1/health');
 
@@ -57,20 +55,16 @@ describe('API health', () => {
     assert.equal(response.body.status, 'ok');
     assert.equal(response.body.database, 'connected');
   });
-});
 
-describe('Authentication', () => {
   test('registers a customer, hashes the password, and sets a secure cookie', async () => {
-    const response = await request(app)
-      .post('/api/v1/auth/register')
-      .send(registration);
+    const response = await request(app).post('/api/v1/auth/register').send(registration);
 
     assert.equal(response.status, 201);
     assert.equal(response.body.data.user.email, registration.email);
     assert.equal(response.body.data.user.role, 'customer');
     assert.equal(response.body.data.user.password, undefined);
 
-    const storedUser = await User.findOne({ email: registration.email }).select('+password');
+    const storedUser = await User.findByEmail(registration.email, { withPassword: true });
     assert.notEqual(storedUser.password, registration.password);
     assert.match(storedUser.password, /^\$2[aby]\$/);
 
@@ -81,9 +75,7 @@ describe('Authentication', () => {
 
   test('rejects duplicate email addresses', async () => {
     await request(app).post('/api/v1/auth/register').send(registration);
-    const response = await request(app)
-      .post('/api/v1/auth/register')
-      .send(registration);
+    const response = await request(app).post('/api/v1/auth/register').send(registration);
 
     assert.equal(response.status, 409);
     assert.match(response.body.message, /already exists/i);

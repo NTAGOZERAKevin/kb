@@ -13,14 +13,15 @@
   },
   "scripts": {
     "dev": "concurrently -n api,web -c green,magenta \"npm:dev:backend\" \"npm:dev:frontend\"",
-    "dev:demo": "concurrently -n api,web -c green,magenta \"npm run dev:memory --workspace backend\" \"npm:dev:frontend\"",
     "dev:backend": "npm run dev --workspace backend",
     "dev:frontend": "npm run dev --workspace frontend",
     "build": "npm run build --workspace frontend",
     "start": "npm run start --workspace backend",
     "test": "npm run test --workspace backend",
     "lint": "eslint frontend/src backend/src backend/test backend/scripts eslint.config.js",
-    "seed:admin": "npm run seed:admin --workspace backend"
+    "db:migrate": "npm run db:migrate --workspace backend",
+    "seed:admin": "npm run seed:admin --workspace backend",
+    "seed:products": "npm run seed:products --workspace backend"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",

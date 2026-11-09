@@ -16,6 +16,8 @@ const app = express();
 
 app.disable('x-powered-by');
 
+app.use('/uploads', express.static(env.uploadDir, { maxAge: '7d', index: false }));
+
 if (env.trustProxy > 0) {
   app.set('trust proxy', env.trustProxy);
 }

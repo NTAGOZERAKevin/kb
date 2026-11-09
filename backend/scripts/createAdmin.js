@@ -1,4 +1,5 @@
 import { connectDB, disconnectDB } from '../src/config/db.js';
+import { migrate } from '../src/db/migrate.js';
 import { env } from '../src/config/env.js';
 import { User } from '../src/models/user.model.js';
 
@@ -15,9 +16,10 @@ async function createAdmin() {
   }
 
   await connectDB();
+  await migrate();
 
   const email = env.adminEmail.toLowerCase().trim();
-  const existingUser = await User.findOne({ email });
+  const existingUser = await User.findByEmail(email);
 
   if (existingUser) {
     console.info(`An account already exists for ${email}. No changes were made.`);

@@ -40,6 +40,7 @@ export default [
     rules: {
       ...sharedRules,
       ...reactHooks.configs.recommended.rules,
+      'react-hooks/set-state-in-effect': 'off',
       'react/jsx-uses-vars': 'error',
       'react-refresh/only-export-components': [
         'warn',

@@ -21,7 +21,7 @@ export default function Login() {
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const redirectTo = location.state?.from?.pathname || '/profile';
+  const redirectTo = location.state?.from?.pathname;
 
   function handleChange(event) {
     const { name, value } = event.target;
@@ -37,8 +37,9 @@ export default function Login() {
     setFieldErrors({});
 
     try {
-      await login(form);
-      navigate(redirectTo, { replace: true });
+      const loggedInUser = await login(form);
+      const destination = redirectTo || (loggedInUser.role === 'admin' ? '/admin' : '/profile');
+      navigate(destination, { replace: true });
     } catch (requestError) {
       const details = requestError.response?.data?.errors;
       if (details?.length) {

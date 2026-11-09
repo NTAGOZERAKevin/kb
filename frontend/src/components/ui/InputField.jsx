@@ -33,7 +33,7 @@ export function InputField({
           id={fieldId}
           aria-invalid={Boolean(error)}
           aria-describedby={error || hint ? descriptionId : undefined}
-          className={`w-full rounded-2xl border bg-white px-4 py-3.5 text-sm text-ink outline-none transition placeholder:text-ink/35 focus:border-gold focus:ring-4 focus:ring-gold/15 ${
+          className={`w-full rounded-2xl border bg-card px-4 py-3.5 text-sm text-ink outline-none transition placeholder:text-ink/35 focus:border-gold focus:ring-4 focus:ring-gold/15 ${
             Icon ? 'pl-11' : ''
           } ${rightElement ? 'pr-12' : ''} ${
             error ? 'border-red-300' : 'border-forest/15'

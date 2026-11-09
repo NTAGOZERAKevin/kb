@@ -1,10 +1,12 @@
 import { Router } from 'express';
 import { body } from 'express-validator';
 import {
+  changePassword,
   getCurrentUser,
   login,
   logout,
   register,
+  updateProfile,
 } from '../controllers/auth.controller.js';
 import { protect } from '../middleware/auth.middleware.js';
 import { authLimiter } from '../middleware/rateLimit.middleware.js';
@@ -50,9 +52,71 @@ const loginValidation = [
   body('password').notEmpty().withMessage('Password is required'),
 ];
 
+const profileValidation = [
+  body('name')
+    .optional()
+    .trim()
+    .isLength({ min: 2, max: 60 })
+    .withMessage('Name must be between 2 and 60 characters'),
+  body('phone')
+    .optional({ values: 'falsy' })
+    .trim()
+    .isLength({ min: 7, max: 20 })
+    .withMessage('Phone number must be between 7 and 20 characters'),
+  body('address.street')
+    .optional({ values: 'falsy' })
+    .trim()
+    .isLength({ max: 160 })
+    .withMessage('Street address is too long'),
+  body('address.city')
+    .optional({ values: 'falsy' })
+    .trim()
+    .isLength({ max: 80 })
+    .withMessage('City is too long'),
+  body('address.district')
+    .optional({ values: 'falsy' })
+    .trim()
+    .isLength({ max: 80 })
+    .withMessage('District is too long'),
+  body('address.country')
+    .optional({ values: 'falsy' })
+    .trim()
+    .isLength({ max: 80 })
+    .withMessage('Country is too long'),
+];
+
+const changePasswordValidation = [
+  body('currentPassword').notEmpty().withMessage('Current password is required'),
+  body('newPassword')
+    .isStrongPassword({
+      minLength: 8,
+      minLowercase: 1,
+      minUppercase: 1,
+      minNumbers: 1,
+      minSymbols: 0,
+    })
+    .withMessage(
+      'Password must be at least 8 characters and include uppercase, lowercase, and a number',
+    )
+    .custom((value, { req }) => value !== req.body.currentPassword)
+    .withMessage('Choose a password different from your current one'),
+  body('newPasswordConfirm')
+    .custom((value, { req }) => value === req.body.newPassword)
+    .withMessage('Passwords do not match'),
+];
+
 router.post('/register', authLimiter, registerValidation, validate, register);
 router.post('/login', authLimiter, loginValidation, validate, login);
 router.post('/logout', logout);
 router.get('/me', protect, getCurrentUser);
+router.patch('/profile', protect, profileValidation, validate, updateProfile);
+router.patch(
+  '/password',
+  protect,
+  authLimiter,
+  changePasswordValidation,
+  validate,
+  changePassword,
+);
 
 export default router;

@@ -19,4 +19,14 @@ export const authService = {
   async logout() {
     await api.post('/auth/logout');
   },
+
+  async updateProfile(payload) {
+    const response = await api.patch('/auth/profile', payload);
+    return response.data.data.user;
+  },
+
+  async changePassword(payload) {
+    const response = await api.patch('/auth/password', payload);
+    return response.data;
+  },
 };
