@@ -1,4 +1,5 @@
 import { Outlet } from 'react-router-dom';
+import { BackToTop, ScrollProgress } from '../ui/ScrollProgress.jsx';
 import { Footer } from './Footer.jsx';
 import { Navbar } from './Navbar.jsx';
 
@@ -11,11 +12,13 @@ export function SiteLayout() {
       >
         Skip to content
       </a>
+      <ScrollProgress />
       <Navbar />
       <main id="main-content">
         <Outlet />
       </main>
       <Footer />
+      <BackToTop />
     </div>
   );
 }

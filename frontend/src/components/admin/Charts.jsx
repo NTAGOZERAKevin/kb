@@ -28,17 +28,17 @@ export function StatCard({
 }) {
   return (
     <article
-      className="group relative overflow-hidden rounded-[1.75rem] border border-forest/10 bg-card p-6 shadow-[0_20px_60px_-40px_rgba(14,42,35,0.5)] transition duration-500 hover:-translate-y-1 hover:shadow-[0_30px_70px_-35px_rgba(14,42,35,0.45)]"
+      className="group relative overflow-hidden rounded-[1.75rem] border border-forest/10 bg-card p-6 shadow-[0_20px_60px_-40px_rgba(34,4,33,0.5)] transition duration-500 hover:-translate-y-1 hover:shadow-[0_30px_70px_-35px_rgba(34,4,33,0.45)]"
       style={{ animation: `fade-up 0.7s cubic-bezier(0.22,1,0.36,1) ${delay}ms both` }}
     >
       <span
         className="absolute inset-x-0 top-0 h-1 origin-left scale-x-0 transition-transform duration-500 group-hover:scale-x-100"
         style={{ backgroundColor: accent }}
       />
-      <div className="flex items-start justify-between gap-4">
-        <div>
+      <div className="flex items-start justify-between gap-2 sm:gap-4">
+        <div className="min-w-0">
           <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-ink/40">{label}</p>
-          <p className="mt-3 font-display text-3xl font-semibold text-forest sm:text-4xl">
+          <p className="mt-3 break-words font-display text-2xl font-semibold leading-tight text-forest tabular-nums sm:text-4xl">
             <AnimatedNumber value={value} format={format} />
           </p>
           {hint && <p className="mt-2 text-xs text-ink/45">{hint}</p>}
@@ -94,12 +94,12 @@ export function SalesChart({ data = [] }) {
       : '';
 
   return (
-    <div className="relative">
-      <svg viewBox={`0 0 ${width} ${height}`} className="w-full" role="img" aria-label="Sales over the last 7 days">
+    <div className="relative overflow-x-auto">
+      <svg viewBox={`0 0 ${width} ${height}`} className="w-full min-w-[22rem] sm:min-w-0" role="img" aria-label="Sales over the last 7 days">
         <defs>
           <linearGradient id="salesArea" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#c7a46b" stopOpacity="0.35" />
-            <stop offset="100%" stopColor="#c7a46b" stopOpacity="0" />
+            <stop offset="0%" stopColor="#d9a63c" stopOpacity="0.35" />
+            <stop offset="100%" stopColor="#d9a63c" stopOpacity="0" />
           </linearGradient>
         </defs>
 
@@ -136,7 +136,7 @@ export function SalesChart({ data = [] }) {
               cx={point.x}
               cy={point.y}
               r="9"
-              fill="#c7a46b"
+              fill="#d9a63c"
               opacity="0.18"
               className="chart-dot-halo"
               style={{ animationDelay: `${index * 90 + 500}ms` }}

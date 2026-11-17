@@ -6,7 +6,7 @@ dotenv.config({ quiet: true });
 
 const backendRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 
-const required = ['DATABASE_URL', 'JWT_SECRET'];
+const required = ['MONGODB_URI', 'JWT_SECRET'];
 
 for (const key of required) {
   if (!process.env[key]) {
@@ -26,31 +26,14 @@ if (!Number.isInteger(port) || port < 1 || port > 65535) {
   throw new Error('PORT must be a valid port number');
 }
 
-function resolveDatabaseSsl(connectionString) {
-  if (process.env.DATABASE_SSL === 'false') {
-    return false;
-  }
-
-  if (process.env.DATABASE_SSL === 'true') {
-    return true;
-  }
-
-  try {
-    const { hostname } = new URL(connectionString);
-    return !['localhost', '127.0.0.1', '::1'].includes(hostname);
-  } catch {
-    return true;
-  }
-}
-
 export const env = Object.freeze({
   nodeEnv,
   isProduction: nodeEnv === 'production',
   isTest: nodeEnv === 'test',
   port,
   trustProxy,
-  databaseUrl: process.env.DATABASE_URL,
-  databaseSsl: resolveDatabaseSsl(process.env.DATABASE_URL),
+  mongodbUri: process.env.MONGODB_URI,
+  mongodbDb: process.env.MONGODB_DB,
   jwtSecret: process.env.JWT_SECRET,
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '7d',
   clientUrls: (process.env.CLIENT_URL || 'http://localhost:5173')
@@ -59,7 +42,7 @@ export const env = Object.freeze({
     .filter(Boolean),
   cookieName: process.env.COOKIE_NAME || 'bom_token',
   cookieMaxAgeMs: 7 * 24 * 60 * 60 * 1000,
-  adminName: process.env.ADMIN_NAME || 'Beauty Oil Market Admin',
+  adminName: process.env.ADMIN_NAME || 'Sharon Glow Boutique Admin',
   adminEmail: process.env.ADMIN_EMAIL,
   adminPassword: process.env.ADMIN_PASSWORD,
   uploadDir: path.resolve(process.env.UPLOAD_DIR || path.join(backendRoot, 'uploads')),
@@ -67,11 +50,6 @@ export const env = Object.freeze({
     cloudName: process.env.CLOUDINARY_CLOUD_NAME,
     apiKey: process.env.CLOUDINARY_API_KEY,
     apiSecret: process.env.CLOUDINARY_API_SECRET,
-  },
-  supabase: {
-    url: process.env.SUPABASE_URL,
-    anonKey: process.env.SUPABASE_KEY,
-    serviceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
   },
   smtp: {
     host: process.env.SMTP_HOST,

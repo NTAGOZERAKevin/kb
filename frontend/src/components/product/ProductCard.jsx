@@ -42,7 +42,7 @@ export function ProductCard({ product, onAdd, index = 0 }) {
             type="button"
             onClick={() => onAdd(product)}
             disabled={product.stock <= 0}
-            className="absolute inset-x-4 top-4 flex translate-y-[-140%] items-center justify-center gap-2 rounded-full bg-forest px-4 py-2.5 text-[10px] font-bold uppercase tracking-[0.14em] text-ivory opacity-0 shadow-soft transition duration-300 group-hover:translate-y-0 group-hover:opacity-100 disabled:cursor-not-allowed disabled:bg-ink/50"
+            className="absolute inset-x-4 bottom-16 flex translate-y-0 items-center justify-center gap-2 rounded-full bg-forest px-4 py-2.5 text-[10px] font-bold uppercase tracking-[0.14em] text-ivory opacity-100 shadow-soft transition duration-300 disabled:cursor-not-allowed disabled:bg-ink/50 md:bottom-auto md:top-4 md:translate-y-[-140%] md:opacity-0 md:group-hover:translate-y-0 md:group-hover:opacity-100"
           >
             <ShoppingBag className="size-3.5" aria-hidden="true" />
             {product.stock > 0 ? 'Add to cart' : 'Sold out'}
@@ -70,7 +70,7 @@ export function ProductCard({ product, onAdd, index = 0 }) {
         {typeof product.stock === 'number' && (
           <p
             className={`mt-3 text-[10px] font-bold uppercase tracking-[0.14em] ${
-              product.stock > 0 ? 'text-emerald-700' : 'text-rose-600'
+              product.stock > 0 ? 'text-moss' : 'text-clay'
             }`}
           >
             {product.stock > 0 ? `${product.stock} in stock` : 'Out of stock'}

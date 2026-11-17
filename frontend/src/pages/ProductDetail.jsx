@@ -195,7 +195,7 @@ export default function ProductDetail() {
             </span>
             <span
               className={`rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-[0.12em] ${
-                inStock ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-700'
+                inStock ? 'bg-gold/20 text-forest' : 'bg-clay/15 text-clay'
               }`}
             >
               {inStock ? `${product.stock} in stock` : 'Sold out'}

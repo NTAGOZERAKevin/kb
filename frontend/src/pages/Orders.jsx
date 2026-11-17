@@ -144,7 +144,7 @@ export default function Orders() {
                       This order was cancelled. Contact us if you need help placing a new one.
                     </p>
                   ) : (
-                    <ol className="mt-6 grid grid-cols-4 gap-2">
+                    <ol className="mt-6 grid grid-cols-2 gap-x-3 gap-y-4 sm:grid-cols-4">
                       {steps.map((step, stepIndex) => {
                         const done = stepIndex <= currentStep;
                         return (

@@ -1,46 +1,40 @@
 import { randomUUID } from 'node:crypto';
-import { query } from '../config/db.js';
+import { collection } from '../config/db.js';
 import { isUuid, mapNotification } from '../db/rows.js';
 
-const NOTIFICATION_COLUMNS =
-  'id, type, title, message, order_id, customer_id, channels, is_read, created_at, updated_at';
+function notifications() {
+  return collection('notifications');
+}
 
 export const Notification = {
   async create({ type = 'system', title, message, order, customer, channels = [] }) {
-    const { rows } = await query(
-      `insert into notifications (id, type, title, message, order_id, customer_id, channels)
-       values ($1, $2, $3, $4, $5, $6, $7)
-       returning ${NOTIFICATION_COLUMNS}`,
-      [
-        randomUUID(),
-        type,
-        title,
-        message,
-        isUuid(order) ? order : null,
-        isUuid(customer) ? customer : null,
-        JSON.stringify(channels),
-      ],
-    );
+    const now = new Date();
+    const document = {
+      _id: randomUUID(),
+      type,
+      title,
+      message,
+      order: isUuid(order) ? order : null,
+      customer: isUuid(customer) ? customer : null,
+      channels,
+      isRead: false,
+      createdAt: now,
+      updatedAt: now,
+    };
 
-    return mapNotification(rows[0]);
+    await notifications().insertOne(document);
+
+    return mapNotification(document);
   },
 
   async list(limit = 10) {
-    const { rows } = await query(
-      `select ${NOTIFICATION_COLUMNS} from notifications
-       order by created_at desc
-       limit $1`,
-      [limit],
-    );
+    const documents = await notifications().find().sort({ createdAt: -1 }).limit(limit).toArray();
 
-    return rows.map(mapNotification);
+    return documents.map(mapNotification);
   },
 
   async countUnread() {
-    const { rows } = await query(
-      'select count(*)::int as total from notifications where is_read = false',
-    );
-    return rows[0].total;
+    return notifications().countDocuments({ isRead: false });
   },
 
   async markRead(id) {
@@ -48,17 +42,19 @@ export const Notification = {
       return null;
     }
 
-    const { rows } = await query(
-      `update notifications set is_read = true, updated_at = now()
-       where id = $1
-       returning ${NOTIFICATION_COLUMNS}`,
-      [id],
+    const updated = await notifications().findOneAndUpdate(
+      { _id: id },
+      { $set: { isRead: true, updatedAt: new Date() } },
+      { returnDocument: 'after' },
     );
 
-    return mapNotification(rows[0]);
+    return mapNotification(updated);
   },
 
   async markAllRead() {
-    await query('update notifications set is_read = true, updated_at = now() where is_read = false');
+    await notifications().updateMany(
+      { isRead: false },
+      { $set: { isRead: true, updatedAt: new Date() } },
+    );
   },
 };

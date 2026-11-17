@@ -16,7 +16,7 @@ export function AuthShell({ eyebrow, title, subtitle, children, footer }) {
           <Logo light />
           <div className="max-w-md">
             <p className="text-[10px] font-bold uppercase tracking-[0.26em] text-gold">
-              The Beauty Oil Market ritual
+              The Sharon Glow Boutique ritual
             </p>
             <p className="mt-5 font-display text-4xl font-medium leading-[1.08] text-ivory xl:text-5xl">
               A slower kind of beauty, made from the good stuff.

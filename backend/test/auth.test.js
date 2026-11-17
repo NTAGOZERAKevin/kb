@@ -6,14 +6,14 @@ process.env.NODE_ENV = 'test';
 process.env.JWT_SECRET = 'test-secret-that-is-longer-than-thirty-two-characters';
 process.env.CLIENT_URL = 'http://localhost:5173';
 
-const testDatabaseUrl = process.env.TEST_DATABASE_URL || '';
-process.env.DATABASE_URL = testDatabaseUrl || 'postgresql://localhost:5432/beauty-oil-market-test';
+const testDatabaseUri = process.env.TEST_MONGODB_URI || '';
+process.env.MONGODB_URI = testDatabaseUri || 'mongodb://127.0.0.1:27017/beauty-oil-market-test';
 
-// These tests truncate tables, so they only run against an explicit test database.
-const suite = testDatabaseUrl ? describe : describe.skip;
+// These tests drop collections, so they only run against an explicit test database.
+const suite = testDatabaseUri ? describe : describe.skip;
 
 let app;
-let pool;
+let db;
 let User;
 
 const registration = {
@@ -24,23 +24,22 @@ const registration = {
   phone: '+250788123456',
 };
 
-suite('Beauty Oil Market API', () => {
+suite('Sharon Glow Boutique API', () => {
   before(async () => {
-    const { connectDB, getPool } = await import('../src/config/db.js');
+    const { connectDB, getDb } = await import('../src/config/db.js');
     const { migrate } = await import('../src/db/migrate.js');
 
     await connectDB();
     await migrate();
 
-    pool = getPool();
+    db = getDb();
     app = (await import('../src/app.js')).default;
     User = (await import('../src/models/user.model.js')).User;
   });
 
   beforeEach(async () => {
-    await pool.query(
-      'truncate table activity_logs, notifications, orders, reviews, products, users restart identity cascade',
-    );
+    const collections = await db.listCollections().toArray();
+    await Promise.all(collections.map((entry) => db.collection(entry.name).drop()));
   });
 
   after(async () => {

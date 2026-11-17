@@ -14,6 +14,22 @@ import { ApiError } from './utils/ApiError.js';
 
 const app = express();
 
+const localDevOrigin = /^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])(:\d+)?$/i;
+
+function isAllowedOrigin(origin) {
+  if (env.clientUrls.includes(origin)) {
+    return true;
+  }
+
+  if (env.isProduction) {
+    return false;
+  }
+
+  // Outside production, any local dev server is fine: Vite falls back to the next
+  // free port, and 127.0.0.1/localhost are the same machine to the developer.
+  return origin === 'null' || localDevOrigin.test(origin);
+}
+
 app.disable('x-powered-by');
 
 app.use('/uploads', express.static(env.uploadDir, { maxAge: '7d', index: false }));
@@ -31,12 +47,14 @@ app.use(
 app.use(
   cors({
     origin(origin, callback) {
-      if (!origin || env.clientUrls.includes(origin)) {
+      if (!origin || isAllowedOrigin(origin)) {
         callback(null, true);
         return;
       }
 
-      callback(new ApiError(403, 'This origin is not allowed to access the API'));
+      callback(
+        new ApiError(403, `This origin (${origin}) is not allowed to access the API`),
+      );
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
@@ -59,7 +77,7 @@ if (!env.isTest) {
 app.get('/', (_req, res) => {
   res.json({
     success: true,
-    name: 'Beauty Oil Market API',
+    name: 'Sharon Glow Boutique API',
     version: 'v1',
     documentation: '/api/v1/health',
   });

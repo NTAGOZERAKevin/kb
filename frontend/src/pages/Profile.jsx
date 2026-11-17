@@ -29,6 +29,7 @@ import { siteConfig } from '../config/site.js';
 import { useAuth } from '../context/auth-context.js';
 import { useDocumentTitle } from '../hooks/useDocumentTitle.js';
 import { orderService } from '../services/store.service.js';
+import { hasDashboardAccess } from '../utils/roles.js';
 import { formatCurrency } from '../utils/formatCurrency.js';
 import { getErrorMessage } from '../utils/getErrorMessage.js';
 
@@ -64,17 +65,17 @@ function formatDate(value, options) {
 function MetricCard({ icon: Icon, label, value, format, hint, accent, delay = 0 }) {
   return (
     <article
-      className="group relative overflow-hidden rounded-[1.75rem] border border-forest/10 bg-card p-6 shadow-[0_20px_60px_-45px_rgba(14,42,35,0.5)] transition duration-500 hover:-translate-y-1 hover:shadow-[0_30px_70px_-40px_rgba(14,42,35,0.45)]"
+      className="group relative overflow-hidden rounded-[1.75rem] border border-forest/10 bg-card p-6 shadow-[0_20px_60px_-45px_rgba(34,4,33,0.5)] transition duration-500 hover:-translate-y-1 hover:shadow-[0_30px_70px_-40px_rgba(34,4,33,0.45)]"
       style={{ animation: `fade-up 0.7s cubic-bezier(0.22,1,0.36,1) ${delay}ms both` }}
     >
       <span
         className="absolute inset-x-0 top-0 h-1 origin-left scale-x-0 transition-transform duration-500 group-hover:scale-x-100"
         style={{ backgroundColor: accent }}
       />
-      <div className="flex items-start justify-between gap-4">
-        <div>
+      <div className="flex items-start justify-between gap-2 sm:gap-4">
+        <div className="min-w-0">
           <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-ink/40">{label}</p>
-          <p className="mt-3 font-display text-3xl font-semibold text-forest sm:text-4xl">
+          <p className="mt-3 break-words font-display text-2xl font-semibold text-forest sm:text-4xl">
             <AnimatedNumber value={value} format={format} />
           </p>
           {hint && <p className="mt-2 text-xs text-ink/45">{hint}</p>}
@@ -215,7 +216,7 @@ export default function Profile() {
                   <Package className="size-4" aria-hidden="true" />
                   My orders
                 </Button>
-                {user.role === 'admin' && (
+                {hasDashboardAccess(user) && (
                   <Button to="/admin" variant="light" size="md">
                     <LayoutDashboard className="size-4" aria-hidden="true" />
                     Admin dashboard
@@ -246,7 +247,7 @@ export default function Profile() {
             label="Total orders"
             value={totalOrders}
             hint="Every ritual you have started"
-            accent="#173b32"
+            accent="#3c0b3d"
             delay={0}
           />
           <MetricCard
@@ -254,7 +255,7 @@ export default function Profile() {
             label="On the way"
             value={activeOrders}
             hint="Orders currently in progress"
-            accent="#c87d5a"
+            accent="#c24d86"
             delay={70}
           />
           <MetricCard
@@ -262,7 +263,7 @@ export default function Profile() {
             label="Delivered"
             value={deliveredOrders}
             hint="Rituals that reached your door"
-            accent="#5b705c"
+            accent="#7b5a7a"
             delay={140}
           />
           <MetricCard
@@ -271,7 +272,7 @@ export default function Profile() {
             value={totalSpent}
             format={(value) => formatCurrency(value)}
             hint="Across your beauty collection"
-            accent="#c7a46b"
+            accent="#d9a63c"
             delay={210}
           />
         </div>
@@ -283,7 +284,7 @@ export default function Profile() {
         )}
 
         <div className="mt-6 grid gap-6 lg:grid-cols-[1.35fr_0.9fr]">
-          <Reveal className="rounded-[2rem] border border-forest/10 bg-card p-6 shadow-[0_20px_60px_-50px_rgba(14,42,35,0.5)] sm:p-8">
+          <Reveal className="rounded-[2rem] border border-forest/10 bg-card p-6 shadow-[0_20px_60px_-50px_rgba(34,4,33,0.5)] sm:p-8">
             <div className="flex items-center justify-between gap-4">
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-clay">
@@ -363,7 +364,7 @@ export default function Profile() {
             </div>
           </Reveal>
 
-          <Reveal delay={120} className="rounded-[2rem] border border-forest/10 bg-card p-6 shadow-[0_20px_60px_-50px_rgba(14,42,35,0.5)] sm:p-8">
+          <Reveal delay={120} className="rounded-[2rem] border border-forest/10 bg-card p-6 shadow-[0_20px_60px_-50px_rgba(34,4,33,0.5)] sm:p-8">
             <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-clay">
               Account snapshot
             </p>
@@ -430,7 +431,7 @@ export default function Profile() {
           </Reveal>
         </div>
 
-        <Reveal className="mt-6 rounded-[2rem] border border-forest/10 bg-card p-6 shadow-[0_20px_60px_-50px_rgba(14,42,35,0.5)] sm:p-8">
+        <Reveal className="mt-6 rounded-[2rem] border border-forest/10 bg-card p-6 shadow-[0_20px_60px_-50px_rgba(34,4,33,0.5)] sm:p-8">
           <div className="flex items-start justify-between gap-4">
             <div>
               <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-clay">

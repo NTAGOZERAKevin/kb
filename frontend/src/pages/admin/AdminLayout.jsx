@@ -8,6 +8,7 @@ import {
   Menu,
   Package,
   Settings,
+  ShieldCheck,
   ShoppingCart,
   Store,
   Users,
@@ -17,12 +18,14 @@ import { Logo } from '../../components/layout/Logo.jsx';
 import { useAuth } from '../../context/auth-context.js';
 import { useLanguage } from '../../context/language-context.js';
 import { notificationService } from '../../services/store.service.js';
+import { isOwner } from '../../utils/roles.js';
 
 const navigation = [
   { to: '/admin', labelKey: 'nav.dashboard', icon: LayoutDashboard, end: true },
   { to: '/admin/products', labelKey: 'nav.products', icon: Package },
   { to: '/admin/orders', labelKey: 'nav.orders', icon: ShoppingCart },
   { to: '/admin/customers', labelKey: 'nav.customers', icon: Users },
+  { to: '/admin/team', labelKey: 'nav.team', icon: ShieldCheck },
   { to: '/admin/settings', labelKey: 'nav.settings', icon: Settings },
 ];
 
@@ -45,6 +48,10 @@ export function AdminLayout() {
   const [notifications, setNotifications] = useState([]);
   const [unread, setUnread] = useState(0);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+
+  const isSiteOwner = isOwner(user);
+  // Admins run the shop, but only the owner may open the team access page.
+  const visibleNavigation = navigation.filter((item) => item.to !== '/admin/team' || isSiteOwner);
 
   useEffect(() => {
     const timer = setInterval(() => setClock(new Date()), 1000);
@@ -74,6 +81,26 @@ export function AdminLayout() {
       clearInterval(timer);
     };
   }, []);
+
+  useEffect(() => {
+    if (!isSidebarOpen) {
+      return undefined;
+    }
+
+    function handleEscape(event) {
+      if (event.key === 'Escape') {
+        setIsSidebarOpen(false);
+      }
+    }
+
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', handleEscape);
+
+    return () => {
+      document.body.style.overflow = '';
+      window.removeEventListener('keydown', handleEscape);
+    };
+  }, [isSidebarOpen]);
 
   function toggleNotifications() {
     setIsNotificationsOpen((current) => !current);
@@ -125,11 +152,11 @@ export function AdminLayout() {
       </div>
 
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-72 transform border-r border-forest/10 bg-forest-dark text-ivory transition-transform duration-500 lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 w-72 max-w-[85vw] transform border-r border-forest/10 bg-forest-dark text-ivory transition-transform duration-500 lg:translate-x-0 ${
           isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        <div className="flex h-full flex-col p-6">
+        <div className="flex h-full flex-col overflow-y-auto overscroll-contain p-6">
           <div className="flex items-center justify-between">
             <Logo light />
             <button
@@ -147,7 +174,7 @@ export function AdminLayout() {
           </p>
 
           <nav className="mt-4 space-y-1.5">
-            {navigation.map(({ to, labelKey, icon: Icon, end }) => (
+            {visibleNavigation.map(({ to, labelKey, icon: Icon, end }) => (
               <NavLink
                 key={to}
                 to={to}
@@ -182,7 +209,7 @@ export function AdminLayout() {
             ))}
           </nav>
 
-          <div className="mt-auto space-y-3">
+          <div className="mt-6 space-y-3 lg:mt-auto">
             <NavLink
               to="/shop"
               className="flex items-center gap-3 rounded-2xl border border-ivory/10 px-4 py-3 text-xs font-bold uppercase tracking-[0.12em] text-ivory/60 transition hover:border-gold/40 hover:text-gold"
@@ -199,7 +226,7 @@ export function AdminLayout() {
                 <div className="min-w-0">
                   <p className="truncate text-sm font-semibold">{user?.name}</p>
                   <p className="truncate text-[10px] uppercase tracking-[0.12em] text-ivory/40">
-                    {t('nav.administrator')}
+                    {isSiteOwner ? t('nav.owner') : t('nav.administrator')}
                   </p>
                 </div>
               </div>
@@ -227,8 +254,8 @@ export function AdminLayout() {
 
       <div className="relative lg:pl-72">
         <header className="sticky top-0 z-30 border-b border-forest/10 bg-surface/85 backdrop-blur-xl">
-          <div className="flex h-16 items-center justify-between gap-4 px-4 sm:px-6 lg:px-10">
-            <div className="flex items-center gap-3">
+          <div className="flex h-16 items-center justify-between gap-2 px-4 sm:gap-4 sm:px-6 lg:px-10">
+            <div className="flex min-w-0 items-center gap-3">
               <button
                 type="button"
                 onClick={() => setIsSidebarOpen(true)}
@@ -237,11 +264,11 @@ export function AdminLayout() {
               >
                 <Menu className="size-5" />
               </button>
-              <div>
-                <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-ink/35">
-                  Beauty Oil Market
+              <div className="min-w-0">
+                <p className="truncate text-[9px] font-bold uppercase tracking-[0.2em] text-ink/35">
+                  Sharon Glow Boutique
                 </p>
-                <p className="text-sm font-bold text-forest">{t('nav.adminDashboard')}</p>
+                <p className="truncate text-sm font-bold text-forest">{t('nav.adminDashboard')}</p>
               </div>
             </div>
 
@@ -270,7 +297,7 @@ export function AdminLayout() {
                       onClick={() => setIsNotificationsOpen(false)}
                       aria-label={t('header.closeNotifications')}
                     />
-                    <div className="absolute right-0 top-full z-30 mt-2 w-80 overflow-hidden rounded-2xl border border-forest/10 bg-card shadow-2xl">
+                    <div className="absolute right-0 top-full z-30 mt-2 w-80 max-w-[calc(100vw_-_2rem)] overflow-hidden rounded-2xl border border-forest/10 bg-card shadow-2xl">
                       <div className="flex items-center justify-between border-b border-forest/10 px-4 py-3">
                         <p className="text-xs font-bold uppercase tracking-[0.14em] text-forest">
                           {t('header.notifications')}
@@ -336,7 +363,7 @@ export function AdminLayout() {
                 </span>
                 {t('header.live')}
               </span>
-              <span className="rounded-full border border-forest/10 bg-card px-3 py-1.5 font-mono text-[11px] font-semibold text-forest/70">
+              <span className="hidden rounded-full border border-forest/10 bg-card px-3 py-1.5 font-mono text-[11px] font-semibold text-forest/70 sm:inline-block">
                 {clock.toLocaleTimeString('en-US', {
                   hour: '2-digit',
                   minute: '2-digit',

@@ -1,20 +1,19 @@
 import { randomUUID } from 'node:crypto';
-import { query } from '../config/db.js';
+import { collection } from '../config/db.js';
 import { isUuid } from '../db/rows.js';
 
 export const ActivityLog = {
-  async create({ userId, action, ip, userAgent, metadata }) {
-    await query(
-      `insert into activity_logs (id, user_id, action, ip, user_agent, metadata)
-       values ($1, $2, $3, $4, $5, $6)`,
-      [
-        randomUUID(),
-        isUuid(userId) ? userId : null,
-        action,
-        ip ?? null,
-        userAgent ?? null,
-        metadata ? JSON.stringify(metadata) : null,
-      ],
-    );
+  async create({ userId, user, action, ip, userAgent, metadata }) {
+    const owner = userId ?? user;
+
+    await collection('activity_logs').insertOne({
+      _id: randomUUID(),
+      user: isUuid(owner) ? owner : null,
+      action,
+      ip: ip ?? null,
+      userAgent: userAgent ?? null,
+      metadata: metadata ?? null,
+      createdAt: new Date(),
+    });
   },
 };

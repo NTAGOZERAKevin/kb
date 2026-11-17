@@ -3,6 +3,7 @@ import { Product } from '../models/product.model.js';
 import { Review } from '../models/review.model.js';
 import { ApiError } from '../utils/ApiError.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
+import { isAdmin } from '../utils/roles.js';
 
 function parsePagination(query) {
   const page = Math.max(1, Number.parseInt(query.page, 10) || 1);
@@ -14,7 +15,7 @@ export const listProducts = asyncHandler(async (req, res) => {
   const { page, limit, offset } = parsePagination(req.query);
 
   const filters = {
-    includeInactive: req.query.includeInactive === 'true' && req.user?.role === 'admin',
+    includeInactive: req.query.includeInactive === 'true' && isAdmin(req.user),
     category: req.query.category,
     featured: req.query.featured === 'true',
     search: req.query.q,

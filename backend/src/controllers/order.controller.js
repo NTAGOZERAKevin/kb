@@ -10,6 +10,7 @@ import {
 import { initiatePayment } from '../services/payment.service.js';
 import { ApiError } from '../utils/ApiError.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
+import { isAdmin } from '../utils/roles.js';
 
 const FREE_DELIVERY_THRESHOLD = 50000;
 const DELIVERY_FEE = 3000;
@@ -133,7 +134,7 @@ export const getOrder = asyncHandler(async (req, res) => {
     throw new ApiError(404, 'That order could not be found');
   }
 
-  if (!isOwner(order, req.user) && req.user.role !== 'admin') {
+  if (!isOwner(order, req.user) && !isAdmin(req.user)) {
     throw new ApiError(403, 'You do not have permission to view this order');
   }
 
@@ -213,7 +214,7 @@ export const initiateOrderPayment = asyncHandler(async (req, res) => {
     throw new ApiError(404, 'That order could not be found');
   }
 
-  if (!isOwner(order, req.user) && req.user.role !== 'admin') {
+  if (!isOwner(order, req.user) && !isAdmin(req.user)) {
     throw new ApiError(403, 'You do not have permission to pay for this order');
   }
 

@@ -108,6 +108,28 @@ export const customerService = {
     const response = await api.patch(`/customers/${id}`, { isActive });
     return response.data.data.customer;
   },
+
+  async remove(id) {
+    const response = await api.delete(`/customers/${id}`);
+    return response.data.message;
+  },
+};
+
+export const adminService = {
+  async list() {
+    const response = await api.get('/admins');
+    return response.data.data.admins;
+  },
+
+  async create(payload) {
+    const response = await api.post('/admins', payload);
+    return response.data.data.admin;
+  },
+
+  async remove(id) {
+    const response = await api.delete(`/admins/${id}`);
+    return response.data.message;
+  },
 };
 
 export const dashboardService = {

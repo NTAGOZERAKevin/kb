@@ -247,8 +247,12 @@ function OrderRow({
           </p>
         </td>
         <td className="px-5 py-4">
-          <p className="font-semibold text-forest">{order.customer?.name || order.user?.name}</p>
-          <p className="text-[10px] text-ink/40">{order.customer?.email || order.user?.email}</p>
+          <p className="max-w-[12rem] truncate font-semibold text-forest">
+            {order.customer?.name || order.user?.name}
+          </p>
+          <p className="max-w-[12rem] truncate text-[10px] text-ink/40">
+            {order.customer?.email || order.user?.email}
+          </p>
         </td>
         <td className="px-5 py-4 text-ink/60">{order.items.length}</td>
         <td className="px-5 py-4 font-bold text-forest">{formatCurrency(order.total)}</td>
@@ -330,7 +334,7 @@ function OrderRow({
                     <p className="text-[9px] font-bold uppercase tracking-[0.16em] text-ink/40">
                       Payment
                     </p>
-                    <p className="mt-1 text-xs font-semibold capitalize text-forest">
+                    <p className="mt-1 break-words text-xs font-semibold capitalize text-forest">
                       {order.paymentStatus} · {order.paymentMethod.replaceAll('_', ' ')}
                     </p>
                     {order.paymentReference && (

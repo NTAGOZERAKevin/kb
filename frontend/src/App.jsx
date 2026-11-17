@@ -4,6 +4,7 @@ import { SiteLayout } from './components/layout/SiteLayout.jsx';
 import { PageLoader } from './components/ui/PageLoader.jsx';
 import { AdminRoute } from './routes/AdminRoute.jsx';
 import { GuestRoute } from './routes/GuestRoute.jsx';
+import { OwnerRoute } from './routes/OwnerRoute.jsx';
 import { ProtectedRoute } from './routes/ProtectedRoute.jsx';
 import { ScrollToTop } from './routes/ScrollToTop.jsx';
 
@@ -25,6 +26,7 @@ const Dashboard = lazy(() => import('./pages/admin/Dashboard.jsx'));
 const AdminProducts = lazy(() => import('./pages/admin/Products.jsx'));
 const AdminOrders = lazy(() => import('./pages/admin/Orders.jsx'));
 const AdminCustomers = lazy(() => import('./pages/admin/Customers.jsx'));
+const AdminTeam = lazy(() => import('./pages/admin/Team.jsx'));
 const AdminSettings = lazy(() => import('./pages/admin/Settings.jsx'));
 
 export default function App() {
@@ -61,6 +63,14 @@ export default function App() {
           <Route path="products" element={<AdminProducts />} />
           <Route path="orders" element={<AdminOrders />} />
           <Route path="customers" element={<AdminCustomers />} />
+          <Route
+            path="team"
+            element={
+              <OwnerRoute>
+                <AdminTeam />
+              </OwnerRoute>
+            }
+          />
           <Route path="settings" element={<AdminSettings />} />
         </Route>
 

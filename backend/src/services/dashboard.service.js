@@ -1,95 +1,98 @@
-import { query } from '../config/db.js';
-import { mapOrder } from '../db/rows.js';
+import { collection } from '../config/db.js';
+import { Order } from '../models/order.model.js';
 
 const PENDING_STATUSES = ['pending', 'confirmed', 'preparing'];
 
+function orders() {
+  return collection('orders');
+}
+
 export async function getRevenue() {
-  const { rows } = await query(
-    "select coalesce(sum(total), 0) as total from orders where status <> 'cancelled'",
-  );
-  return Number(rows[0].total);
+  const [stats] = await orders()
+    .aggregate([
+      { $match: { status: { $ne: 'cancelled' } } },
+      { $group: { _id: null, total: { $sum: '$total' } } },
+    ])
+    .toArray();
+
+  return Number(stats?.total ?? 0);
 }
 
 export async function countOrders() {
-  const { rows } = await query('select count(*)::int as total from orders');
-  return rows[0].total;
+  return orders().countDocuments();
 }
 
 export async function countPendingOrders() {
-  const { rows } = await query(
-    'select count(*)::int as total from orders where status = any($1::text[])',
-    [PENDING_STATUSES],
-  );
-  return rows[0].total;
+  return orders().countDocuments({ status: { $in: PENDING_STATUSES } });
 }
 
 export async function getPeriodTotals(since) {
-  const { rows } = await query(
-    `select coalesce(sum(total), 0) as total, count(*)::int as count
-     from orders
-     where status <> 'cancelled' and created_at >= $1`,
-    [since],
-  );
+  const [stats] = await orders()
+    .aggregate([
+      { $match: { status: { $ne: 'cancelled' }, createdAt: { $gte: since } } },
+      { $group: { _id: null, total: { $sum: '$total' }, count: { $sum: 1 } } },
+    ])
+    .toArray();
 
-  return { total: Number(rows[0].total), count: rows[0].count };
+  return { total: Number(stats?.total ?? 0), count: stats?.count ?? 0 };
 }
 
 export async function listRecentOrders(limit = 6) {
-  const { rows } = await query(
-    `select o.*, u.name as user_name, u.email as user_email, u.phone as user_phone
-     from orders o
-     left join users u on u.id = o.user_id
-     order by o.created_at desc
-     limit $1`,
-    [limit],
-  );
-
-  return rows.map(mapOrder);
+  return Order.list({ limit, offset: 0 });
 }
 
 export async function getStatusBreakdown() {
-  const { rows } = await query('select status, count(*)::int as count from orders group by status');
+  const rows = await orders()
+    .aggregate([{ $group: { _id: '$status', count: { $sum: 1 } } }])
+    .toArray();
 
   return rows.reduce((accumulator, row) => {
-    accumulator[row.status] = row.count;
+    accumulator[row._id] = row.count;
     return accumulator;
   }, {});
 }
 
 export async function getTopProducts(limit = 5) {
-  const { rows } = await query(
-    `select item->>'name' as name,
-            sum((item->>'quantity')::int)::int as quantity,
-            sum((item->>'price')::numeric * (item->>'quantity')::int) as revenue
-     from orders, jsonb_array_elements(items) as item
-     where status <> 'cancelled'
-     group by 1
-     order by quantity desc
-     limit $1`,
-    [limit],
-  );
+  const rows = await orders()
+    .aggregate([
+      { $match: { status: { $ne: 'cancelled' } } },
+      { $unwind: '$items' },
+      {
+        $group: {
+          _id: '$items.name',
+          quantity: { $sum: '$items.quantity' },
+          revenue: { $sum: { $multiply: ['$items.price', '$items.quantity'] } },
+        },
+      },
+      { $sort: { quantity: -1 } },
+      { $limit: limit },
+    ])
+    .toArray();
 
   return rows.map((row) => ({
-    _id: row.name,
+    _id: row._id,
     quantity: row.quantity,
     revenue: Number(row.revenue),
   }));
 }
 
 export async function getSalesSeries(since) {
-  const { rows } = await query(
-    `select to_char(created_at at time zone 'UTC', 'YYYY-MM-DD') as day,
-            coalesce(sum(total), 0) as total,
-            count(*)::int as orders
-     from orders
-     where status <> 'cancelled' and created_at >= $1
-     group by 1
-     order by 1`,
-    [since],
-  );
+  const rows = await orders()
+    .aggregate([
+      { $match: { status: { $ne: 'cancelled' }, createdAt: { $gte: since } } },
+      {
+        $group: {
+          _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt', timezone: 'UTC' } },
+          total: { $sum: '$total' },
+          orders: { $sum: 1 },
+        },
+      },
+      { $sort: { _id: 1 } },
+    ])
+    .toArray();
 
   return rows.map((row) => ({
-    day: row.day,
+    day: row._id,
     total: Number(row.total),
     orders: row.orders,
   }));

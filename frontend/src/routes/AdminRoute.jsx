@@ -1,6 +1,7 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { PageLoader } from '../components/ui/PageLoader.jsx';
 import { useAuth } from '../context/auth-context.js';
+import { hasDashboardAccess } from '../utils/roles.js';
 
 export function AdminRoute({ children }) {
   const { user, isLoading } = useAuth();
@@ -14,7 +15,7 @@ export function AdminRoute({ children }) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  if (user.role !== 'admin') {
+  if (!hasDashboardAccess(user)) {
     return <Navigate to="/" replace />;
   }
 

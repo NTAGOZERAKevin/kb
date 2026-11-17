@@ -30,10 +30,10 @@ async function createAdmin() {
     name: env.adminName,
     email,
     password: env.adminPassword,
-    role: 'admin',
+    role: 'owner',
   });
 
-  console.info(`Admin account created for ${admin.email}`);
+  console.info(`Site owner account created for ${admin.email}`);
 }
 
 createAdmin()

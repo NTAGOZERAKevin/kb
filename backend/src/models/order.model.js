@@ -1,6 +1,10 @@
 import { randomUUID } from 'node:crypto';
-import { query } from '../config/db.js';
+import { collection, sessionOptions } from '../config/db.js';
 import { isUuid, mapOrder } from '../db/rows.js';
+
+function orders() {
+  return collection('orders');
+}
 
 export const ORDER_STATUSES = [
   'pending',
@@ -13,61 +17,48 @@ export const ORDER_STATUSES = [
 export const PAYMENT_METHODS = ['mtn_momo', 'airtel_money', 'card', 'cash_on_delivery'];
 export const PAYMENT_STATUSES = ['pending', 'paid', 'failed', 'refunded'];
 
-const ORDER_FIELDS = [
-  'id',
-  'order_number',
-  'user_id',
-  'items',
-  'customer',
-  'shipping_address',
-  'payment_method',
-  'payment_status',
-  'payment_reference',
-  'paid_at',
-  'status',
-  'subtotal',
-  'delivery_fee',
-  'total',
-  'notes',
-  'status_history',
-  'created_at',
-  'updated_at',
-];
-
-const ORDER_COLUMNS = ORDER_FIELDS.map((field) => `o.${field}`).join(', ');
-
-const USER_REF_COLUMNS =
-  'u.name as user_name, u.email as user_email, u.phone as user_phone';
-
 function generateOrderNumber() {
   const stamp = Date.now().toString(36).toUpperCase();
   const random = Math.random().toString(36).slice(2, 6).toUpperCase();
-  return `BOM-${stamp}${random}`;
+  return `SGB-${stamp}${random}`;
+}
+
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 function orderFilter({ status, search } = {}) {
-  const conditions = [];
-  const params = [];
+  const filter = {};
 
   if (status && status !== 'all') {
-    params.push(status);
-    conditions.push(`o.status = $${params.length}`);
+    filter.status = status;
   }
 
   const term = String(search ?? '').trim().slice(0, 80);
 
   if (term) {
-    params.push(`%${term}%`);
-    const index = params.length;
-    conditions.push(
-      `(o.order_number ilike $${index} or o.customer->>'name' ilike $${index} or o.customer->>'email' ilike $${index})`,
-    );
+    const pattern = { $regex: escapeRegExp(term), $options: 'i' };
+    filter.$or = [
+      { orderNumber: pattern },
+      { 'customer.name': pattern },
+      { 'customer.email': pattern },
+    ];
   }
 
-  return {
-    clause: conditions.length > 0 ? conditions.join(' and ') : 'true',
-    params,
-  };
+  return filter;
+}
+
+async function usersById(ids) {
+  if (ids.length === 0) {
+    return new Map();
+  }
+
+  const users = await collection('users')
+    .find({ _id: { $in: [...new Set(ids)] } })
+    .project({ name: 1, email: 1, phone: 1 })
+    .toArray();
+
+  return new Map(users.map((user) => [user._id, user]));
 }
 
 export const Order = {
@@ -75,36 +66,36 @@ export const Order = {
     { userId, items, customer, shippingAddress, paymentMethod, subtotal, deliveryFee, total, notes },
     client,
   ) {
+    const now = new Date();
     const status = 'pending';
     const statusHistory = [
-      { status, note: 'Order placed', changedAt: new Date().toISOString() },
+      { status, note: 'Order placed', changedAt: now.toISOString() },
     ];
 
-    const { rows } = await query(
-      `insert into orders (id, order_number, user_id, items, customer, shipping_address,
-                           payment_method, payment_status, status, subtotal, delivery_fee, total,
-                           notes, status_history)
-       values ($1, $2, $3, $4, $5, $6, $7, 'pending', $8, $9, $10, $11, $12, $13)
-       returning ${ORDER_FIELDS.join(', ')}`,
-      [
-        randomUUID(),
-        generateOrderNumber(),
-        userId,
-        JSON.stringify(items),
-        JSON.stringify(customer),
-        JSON.stringify(shippingAddress),
-        paymentMethod,
-        status,
-        subtotal,
-        deliveryFee,
-        total,
-        notes || null,
-        JSON.stringify(statusHistory),
-      ],
-      client,
-    );
+    const document = {
+      _id: randomUUID(),
+      orderNumber: generateOrderNumber(),
+      user: userId,
+      items,
+      customer,
+      shippingAddress,
+      paymentMethod,
+      paymentStatus: 'pending',
+      paymentReference: null,
+      paidAt: null,
+      status,
+      subtotal,
+      deliveryFee,
+      total,
+      notes: notes || null,
+      statusHistory,
+      createdAt: now,
+      updatedAt: now,
+    };
 
-    return mapOrder(rows[0]);
+    await orders().insertOne(document, sessionOptions(client));
+
+    return mapOrder(document);
   },
 
   async findById(id, { withUser = false, client } = {}) {
@@ -112,15 +103,15 @@ export const Order = {
       return null;
     }
 
-    const { rows } = await query(
-      `select ${ORDER_COLUMNS}${withUser ? `, ${USER_REF_COLUMNS}` : ''}
-       from orders o${withUser ? ' left join users u on u.id = o.user_id' : ''}
-       where o.id = $1`,
-      [id],
-      client,
-    );
+    const document = await orders().findOne({ _id: id }, sessionOptions(client));
 
-    return mapOrder(rows[0]);
+    if (!document) {
+      return null;
+    }
+
+    const user = withUser ? (await usersById([document.user])).get(document.user) : undefined;
+
+    return mapOrder(document, { user });
   },
 
   async listByUser(userId, limit = 50) {
@@ -128,32 +119,26 @@ export const Order = {
       return [];
     }
 
-    const { rows } = await query(
-      `select ${ORDER_COLUMNS} from orders o
-       where o.user_id = $1
-       order by o.created_at desc
-       limit $2`,
-      [userId, limit],
-    );
+    const documents = await orders()
+      .find({ user: userId })
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .toArray();
 
-    return rows.map(mapOrder);
+    return documents.map((document) => mapOrder(document));
   },
 
   async list({ status, search, limit, offset }) {
-    const { clause, params } = orderFilter({ status, search });
-    const limitIndex = params.length + 1;
+    const documents = await orders()
+      .find(orderFilter({ status, search }))
+      .sort({ createdAt: -1 })
+      .skip(offset)
+      .limit(limit)
+      .toArray();
 
-    const { rows } = await query(
-      `select ${ORDER_COLUMNS}, ${USER_REF_COLUMNS}
-       from orders o
-       left join users u on u.id = o.user_id
-       where ${clause}
-       order by o.created_at desc
-       limit $${limitIndex} offset $${limitIndex + 1}`,
-      [...params, limit, offset],
-    );
+    const users = await usersById(documents.map((document) => document.user));
 
-    return rows.map(mapOrder);
+    return documents.map((document) => mapOrder(document, { user: users.get(document.user) }));
   },
 
   async statsForUser(userId) {
@@ -161,20 +146,18 @@ export const Order = {
       return { count: 0, total: 0 };
     }
 
-    const { rows } = await query(
-      `select count(*)::int as count, coalesce(sum(total), 0) as total
-       from orders
-       where user_id = $1 and status <> 'cancelled'`,
-      [userId],
-    );
+    const [stats] = await orders()
+      .aggregate([
+        { $match: { user: userId, status: { $ne: 'cancelled' } } },
+        { $group: { _id: null, count: { $sum: 1 }, total: { $sum: '$total' } } },
+      ])
+      .toArray();
 
-    return { count: rows[0].count, total: Number(rows[0].total) };
+    return { count: stats?.count ?? 0, total: Number(stats?.total ?? 0) };
   },
 
   async count({ status, search } = {}) {
-    const { clause, params } = orderFilter({ status, search });
-    const { rows } = await query(`select count(*)::int as total from orders o where ${clause}`, params);
-    return rows[0].total;
+    return orders().countDocuments(orderFilter({ status, search }));
   },
 
   async updateStatus(id, { status, note, paymentStatus }, client) {
@@ -184,19 +167,20 @@ export const Order = {
 
     const entry = [{ status, ...(note ? { note } : {}), changedAt: new Date().toISOString() }];
 
-    const { rows } = await query(
-      `update orders o set
-         status = $2,
-         payment_status = coalesce($3, o.payment_status),
-         status_history = o.status_history || $4::jsonb,
-         updated_at = now()
-       where o.id = $1
-       returning ${ORDER_COLUMNS}`,
-      [id, status, paymentStatus ?? null, JSON.stringify(entry)],
-      client,
+    const updated = await orders().findOneAndUpdate(
+      { _id: id },
+      {
+        $set: {
+          status,
+          ...(paymentStatus ? { paymentStatus } : {}),
+          updatedAt: new Date(),
+        },
+        $push: { statusHistory: { $each: entry } },
+      },
+      { ...sessionOptions(client), returnDocument: 'after' },
     );
 
-    return mapOrder(rows[0]);
+    return mapOrder(updated);
   },
 
   async setPaymentReference(id, reference) {
@@ -204,14 +188,13 @@ export const Order = {
       return null;
     }
 
-    const { rows } = await query(
-      `update orders o set payment_reference = $2, updated_at = now()
-       where o.id = $1
-       returning ${ORDER_COLUMNS}`,
-      [id, reference],
+    const updated = await orders().findOneAndUpdate(
+      { _id: id },
+      { $set: { paymentReference: reference, updatedAt: new Date() } },
+      { returnDocument: 'after' },
     );
 
-    return mapOrder(rows[0]);
+    return mapOrder(updated);
   },
 
   async confirmPayment(id, { reference }) {
@@ -219,26 +202,32 @@ export const Order = {
       return null;
     }
 
+    const current = await orders().findOne({ _id: id });
+
+    if (!current) {
+      return null;
+    }
+
+    const wasPending = current.status === 'pending';
     const historyEntry = [
       { status: 'confirmed', note: 'Payment confirmed', changedAt: new Date().toISOString() },
     ];
 
-    const { rows } = await query(
-      `update orders o set
-         payment_status = 'paid',
-         paid_at = now(),
-         payment_reference = coalesce(o.payment_reference, $2),
-         status = case when o.status = 'pending' then 'confirmed' else o.status end,
-         status_history = case
-           when o.status = 'pending' then o.status_history || $3::jsonb
-           else o.status_history
-         end,
-         updated_at = now()
-       where o.id = $1
-       returning ${ORDER_COLUMNS}`,
-      [id, reference, JSON.stringify(historyEntry)],
+    const updated = await orders().findOneAndUpdate(
+      { _id: id },
+      {
+        $set: {
+          paymentStatus: 'paid',
+          paidAt: new Date(),
+          paymentReference: current.paymentReference ?? reference,
+          ...(wasPending ? { status: 'confirmed' } : {}),
+          updatedAt: new Date(),
+        },
+        ...(wasPending ? { $push: { statusHistory: { $each: historyEntry } } } : {}),
+      },
+      { returnDocument: 'after' },
     );
 
-    return mapOrder(rows[0]);
+    return mapOrder(updated);
   },
 };

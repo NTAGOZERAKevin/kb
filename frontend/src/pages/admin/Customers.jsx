@@ -8,6 +8,7 @@ import {
   Phone,
   Search,
   ShieldCheck,
+  Trash2,
   Users,
 } from 'lucide-react';
 import { Alert } from '../../components/ui/Alert.jsx';
@@ -36,6 +37,11 @@ function formatDate(value) {
   });
 }
 
+function startOfMonth() {
+  const now = new Date();
+  return new Date(now.getFullYear(), now.getMonth(), 1);
+}
+
 function formatAddress(address) {
   if (!address) {
     return 'No delivery address saved';
@@ -62,6 +68,7 @@ export default function AdminCustomers() {
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [updatingId, setUpdatingId] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
   const [expandedId, setExpandedId] = useState(null);
   const [details, setDetails] = useState({});
 
@@ -130,6 +137,42 @@ export default function AdminCustomers() {
       setError(getErrorMessage(requestError, 'We could not update this customer.'));
     } finally {
       setUpdatingId(null);
+    }
+  }
+
+  async function handleDelete(customer) {
+    const confirmed = window.confirm(
+      `Permanently delete ${customer.name}'s account?\n\nThey will be removed from this list and can no longer sign in or create an order with this email. Their past orders stay in your records.`,
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    setDeletingId(customer._id);
+    setError('');
+    setNotice('');
+
+    try {
+      const message = await customerService.remove(customer._id);
+      setCustomers((current) => current.filter((item) => item._id !== customer._id));
+      setSummary((current) => ({
+        ...current,
+        total: Math.max(0, current.total - 1),
+        active: Math.max(0, current.active - (customer.isActive ? 1 : 0)),
+        inactive: Math.max(0, current.inactive - (customer.isActive ? 0 : 1)),
+        newThisMonth: Math.max(
+          0,
+          current.newThisMonth - (new Date(customer.createdAt) >= startOfMonth() ? 1 : 0),
+        ),
+      }));
+      setPagination((current) => ({ ...current, total: Math.max(0, current.total - 1) }));
+      setExpandedId(null);
+      setNotice(message);
+    } catch (requestError) {
+      setError(getErrorMessage(requestError, 'We could not delete this customer.'));
+    } finally {
+      setDeletingId(null);
     }
   }
 
@@ -263,9 +306,11 @@ export default function AdminCustomers() {
                       index={index}
                       isExpanded={isExpanded}
                       isUpdating={updatingId === customer._id}
+                      isDeleting={deletingId === customer._id}
                       detail={detail}
                       onToggleDetails={() => toggleDetails(customer)}
                       onToggleActive={() => toggleActive(customer)}
+                      onDelete={() => handleDelete(customer)}
                     />
                   );
                 })}
@@ -304,7 +349,17 @@ export default function AdminCustomers() {
   );
 }
 
-function CustomerRow({ customer, index, isExpanded, isUpdating, detail, onToggleDetails, onToggleActive }) {
+function CustomerRow({
+  customer,
+  index,
+  isExpanded,
+  isUpdating,
+  isDeleting,
+  detail,
+  onToggleDetails,
+  onToggleActive,
+  onDelete,
+}) {
   const initials = (customer.name || '')
     .split(' ')
     .filter(Boolean)
@@ -361,6 +416,15 @@ function CustomerRow({ customer, index, isExpanded, isUpdating, detail, onToggle
               }`}
             >
               {isUpdating ? 'Saving...' : customer.isActive ? 'Suspend' : 'Restore'}
+            </button>
+            <button
+              type="button"
+              onClick={onDelete}
+              disabled={isDeleting}
+              className="grid size-8 place-items-center rounded-full border border-forest/15 text-ink/40 transition hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600 disabled:opacity-50"
+              aria-label={`Delete ${customer.name} permanently`}
+            >
+              <Trash2 className="size-4" aria-hidden="true" />
             </button>
             <button
               type="button"

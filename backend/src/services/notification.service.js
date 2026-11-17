@@ -160,14 +160,14 @@ export async function notifyOrderStatus(order, status) {
     message: `The order for ${order.customer.name} was marked as ${status}.`,
     order: order._id,
     customer: order.user,
-    emailSubject: `Your Beauty Oil Market order is ${status}`,
+    emailSubject: `Your Sharon Glow Boutique order is ${status}`,
     emailText: [
       `Hello ${order.customer.name},`,
       ``,
       `Your order ${order.orderNumber} is now ${status}.`,
       `Total: ${currency.format(order.total)}`,
       ``,
-      `Thank you for choosing Beauty Oil Market.`,
+      `Thank you for choosing Sharon Glow Boutique.`,
     ].join('\n'),
     customerEmail: order.customer.email,
     webhookPayload: {

@@ -82,7 +82,7 @@ export default function AdminSettings() {
             </div>
           </div>
 
-          <div className="mt-5 grid grid-cols-2 gap-3">
+          <div className="mt-5 grid grid-cols-1 gap-2 min-[380px]:grid-cols-2 sm:gap-3">
             {themeOptions.map(({ value, label, icon: Icon }) => {
               const isActive = theme === value;
               return (
@@ -90,16 +90,16 @@ export default function AdminSettings() {
                   key={value}
                   type="button"
                   onClick={() => setTheme(value)}
-                  className={`flex items-center justify-between gap-3 rounded-2xl border px-4 py-4 text-sm font-semibold transition ${
+                  className={`flex items-center justify-between gap-3 rounded-2xl border px-4 py-4 text-xs font-semibold transition sm:text-sm ${
                     isActive
                       ? 'border-gold bg-gold/10 text-forest'
                       : 'border-forest/15 bg-card text-ink/55 hover:border-forest/35 hover:text-forest'
                   }`}
                   aria-pressed={isActive}
                 >
-                  <span className="flex items-center gap-2">
-                    <Icon className="size-4" aria-hidden="true" />
-                    {label}
+                  <span className="flex min-w-0 items-center gap-2 truncate">
+                    <Icon className="size-4 shrink-0" aria-hidden="true" />
+                    <span className="truncate">{label}</span>
                   </span>
                   {isActive && <Check className="size-4 text-clay" aria-hidden="true" />}
                 </button>

@@ -82,6 +82,28 @@ export const getCustomer = asyncHandler(async (req, res) => {
   });
 });
 
+export const deleteCustomer = asyncHandler(async (req, res) => {
+  const customer = await User.findCustomerById(req.params.id);
+
+  if (!customer) {
+    throw new ApiError(404, 'That customer could not be found');
+  }
+
+  await User.deleteCustomer(customer._id);
+
+  await recordActivity({
+    userId: req.user._id,
+    action: 'customer.deleted',
+    req,
+    metadata: { customer: customer.email },
+  });
+
+  res.json({
+    success: true,
+    message: `${customer.name} was permanently deleted`,
+  });
+});
+
 export const updateCustomer = asyncHandler(async (req, res) => {
   const customer = await User.setActive(req.params.id, req.body.isActive);
 

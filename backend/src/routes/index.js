@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { isDatabaseHealthy } from '../config/db.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
+import adminRoutes from './admin.routes.js';
 import authRoutes from './auth.routes.js';
 import customerRoutes from './customer.routes.js';
 import dashboardRoutes from './dashboard.routes.js';
@@ -30,6 +31,7 @@ router.use('/auth', authRoutes);
 router.use('/products', productRoutes);
 router.use('/orders', orderRoutes);
 router.use('/customers', customerRoutes);
+router.use('/admins', adminRoutes);
 router.use('/dashboard', dashboardRoutes);
 router.use('/uploads', uploadRoutes);
 router.use('/notifications', notificationRoutes);

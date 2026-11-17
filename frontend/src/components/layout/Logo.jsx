@@ -1,48 +1,45 @@
 import { Link } from 'react-router-dom';
-import { siteConfig } from '../../config/site.js';
+
+export function BrandMark({ className = '' }) {
+  return (
+    <img
+      src="/brand/golden-crown-mark.png"
+      alt=""
+      role="img"
+      aria-label="Sharon Glow Boutique crowned woman emblem"
+      draggable="false"
+      className={`select-none object-contain drop-shadow-[0_2px_8px_rgba(34,4,33,0.22)] ${className}`}
+    />
+  );
+}
 
 export function Logo({ light = false, className = '', onClick }) {
   return (
     <Link
       to="/"
       onClick={onClick}
-      aria-label={`${siteConfig.name} home`}
-      className={`group inline-flex items-center gap-3 ${className}`}
+      aria-label="Sharon Glow Boutique home"
+      className={`group inline-flex items-center gap-2.5 ${className}`}
     >
-      <span
-        className={`grid size-10 place-items-center rounded-full border transition-transform duration-500 group-hover:rotate-6 ${
-          light
-            ? 'border-ivory/25 bg-ivory/10 text-gold'
-            : 'border-forest/15 bg-forest text-gold'
-        }`}
-      >
-        <svg viewBox="0 0 24 24" className="size-5" fill="none" aria-hidden="true">
-          <path
-            d="M12 3c3.1 4.5 5.7 8.1 5.7 11.4A5.7 5.7 0 0 1 12 20.1a5.7 5.7 0 0 1-5.7-5.7C6.3 11.1 8.9 7.5 12 3Z"
-            stroke="currentColor"
-            strokeWidth="1.5"
-          />
-          <path
-            d="M12 9.4c1.7 2.5 3 4.4 3 6.2a3 3 0 0 1-6 0c0-1.8 1.3-3.7 3-6.2Z"
-            fill="currentColor"
-            opacity=".55"
-          />
-        </svg>
-      </span>
-      <span className="leading-none">
+      <BrandMark className="h-10 w-auto shrink-0 transition-transform duration-500 group-hover:scale-105 sm:h-14" />
+
+      <span className="min-w-0 leading-none">
         <span
-          className={`block font-display text-2xl font-semibold tracking-tight ${
+          className={`block truncate font-display text-[1.1rem] font-medium leading-none tracking-tight ${
             light ? 'text-ivory' : 'text-forest'
           }`}
         >
-          Beauty Oil
+          Sharon Glow
         </span>
-        <span
-          className={`mt-1 block text-[0.58rem] font-bold uppercase tracking-[0.38em] ${
-            light ? 'text-ivory/60' : 'text-forest/55'
-          }`}
-        >
-          Market
+        <span className="mt-1 flex items-end gap-1.5">
+          <span className="truncate font-display text-[1.25rem] font-semibold leading-[0.85] text-gold sm:text-[1.5rem]">
+            Boutique
+          </span>
+          <span
+            className={`mb-0.5 h-[2px] w-7 rounded-full bg-gradient-to-r from-gold to-transparent ${
+              light ? 'opacity-80' : 'opacity-60'
+            }`}
+          />
         </span>
       </span>
     </Link>

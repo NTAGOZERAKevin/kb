@@ -201,7 +201,7 @@ export default function Dashboard() {
           value={data.revenue}
           format={(value) => formatCurrency(value)}
           hint={`${formatCurrency(data.monthSales)} this month`}
-          accent="#173b32"
+          accent="#3c0b3d"
           delay={0}
         />
         <StatCard
@@ -209,7 +209,7 @@ export default function Dashboard() {
           label="Orders"
           value={data.orders}
           hint={`${data.todayOrders} today · ${data.pendingOrders} open`}
-          accent="#c87d5a"
+          accent="#c24d86"
           delay={90}
         />
         <StatCard
@@ -217,7 +217,7 @@ export default function Dashboard() {
           label="Customers"
           value={data.customers}
           hint="Registered beauty lovers"
-          accent="#5b705c"
+          accent="#7b5a7a"
           delay={180}
         />
         <StatCard
@@ -225,13 +225,13 @@ export default function Dashboard() {
           label="Active products"
           value={data.products}
           hint={`${data.lowStock.length} low on stock`}
-          accent="#c7a46b"
+          accent="#d9a63c"
           delay={270}
         />
       </div>
 
       <div className="grid gap-5 lg:grid-cols-[1.4fr_0.8fr]">
-        <Reveal className="rounded-[2rem] border border-forest/10 bg-card p-6 shadow-[0_20px_60px_-45px_rgba(14,42,35,0.5)] sm:p-7">
+        <Reveal className="rounded-[2rem] border border-forest/10 bg-card p-6 shadow-[0_20px_60px_-45px_rgba(34,4,33,0.5)] sm:p-7">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-ink/40">
@@ -241,11 +241,11 @@ export default function Dashboard() {
                 Last 7 days
               </h2>
             </div>
-            <div className="text-right">
+            <div className="text-left sm:text-right">
               <p className="font-display text-2xl font-semibold text-forest">
                 <AnimatedNumber value={weekRevenue} format={(value) => formatCurrency(value)} />
               </p>
-              <p className="flex items-center justify-end gap-1 text-[10px] font-bold uppercase tracking-[0.12em] text-emerald-600">
+              <p className="flex items-center justify-start gap-1 text-[10px] font-bold uppercase tracking-[0.12em] text-emerald-600 sm:justify-end">
                 <TrendingUp className="size-3" aria-hidden="true" />
                 {data.salesSeries.reduce((sum, entry) => sum + entry.orders, 0)} orders
               </p>
@@ -256,7 +256,7 @@ export default function Dashboard() {
           </div>
         </Reveal>
 
-        <Reveal delay={120} className="rounded-[2rem] border border-forest/10 bg-card p-6 shadow-[0_20px_60px_-45px_rgba(14,42,35,0.5)] sm:p-7">
+        <Reveal delay={120} className="rounded-[2rem] border border-forest/10 bg-card p-6 shadow-[0_20px_60px_-45px_rgba(34,4,33,0.5)] sm:p-7">
           <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-ink/40">
             Order pipeline
           </p>
@@ -268,7 +268,7 @@ export default function Dashboard() {
       </div>
 
       <div className="grid gap-5 lg:grid-cols-[1.3fr_0.9fr]">
-        <Reveal className="rounded-[2rem] border border-forest/10 bg-card p-6 shadow-[0_20px_60px_-45px_rgba(14,42,35,0.5)] sm:p-7">
+        <Reveal className="rounded-[2rem] border border-forest/10 bg-card p-6 shadow-[0_20px_60px_-45px_rgba(34,4,33,0.5)] sm:p-7">
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-ink/40">
@@ -307,10 +307,10 @@ export default function Dashboard() {
                         animation: `fade-up 0.5s cubic-bezier(0.22,1,0.36,1) ${index * 60}ms both`,
                       }}
                     >
-                      <td className="py-3.5 pr-3 font-semibold text-forest">
+                      <td className="max-w-[10rem] truncate py-3.5 pr-3 font-semibold text-forest">
                         {order.orderNumber}
                       </td>
-                      <td className="py-3.5 pr-3 text-ink/60">
+                      <td className="max-w-[10rem] truncate py-3.5 pr-3 text-ink/60">
                         {order.customer?.name || order.user?.name || 'Customer'}
                       </td>
                       <td className="py-3.5 pr-3">
@@ -328,7 +328,7 @@ export default function Dashboard() {
         </Reveal>
 
         <div className="space-y-5">
-          <Reveal delay={80} className="rounded-[2rem] border border-forest/10 bg-card p-6 shadow-[0_20px_60px_-45px_rgba(14,42,35,0.5)] sm:p-7">
+          <Reveal delay={80} className="rounded-[2rem] border border-forest/10 bg-card p-6 shadow-[0_20px_60px_-45px_rgba(34,4,33,0.5)] sm:p-7">
             <div className="flex items-center justify-between">
               <h2 className="font-display text-2xl font-medium text-forest">Top products</h2>
               <TrendingUp className="size-4 text-clay" aria-hidden="true" />

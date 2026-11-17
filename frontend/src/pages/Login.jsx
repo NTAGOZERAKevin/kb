@@ -8,6 +8,7 @@ import { InputField } from '../components/ui/InputField.jsx';
 import { useAuth } from '../context/auth-context.js';
 import { useDocumentTitle } from '../hooks/useDocumentTitle.js';
 import { getErrorMessage } from '../utils/getErrorMessage.js';
+import { hasDashboardAccess } from '../utils/roles.js';
 
 export default function Login() {
   useDocumentTitle('Sign In');
@@ -38,7 +39,7 @@ export default function Login() {
 
     try {
       const loggedInUser = await login(form);
-      const destination = redirectTo || (loggedInUser.role === 'admin' ? '/admin' : '/profile');
+      const destination = redirectTo || (hasDashboardAccess(loggedInUser) ? '/admin' : '/profile');
       navigate(destination, { replace: true });
     } catch (requestError) {
       const details = requestError.response?.data?.errors;
@@ -60,7 +61,7 @@ export default function Login() {
       subtitle="Sign in to see your profile and keep your beauty essentials close."
       footer={
         <>
-          New to Beauty Oil Market?{' '}
+          New to Sharon Glow Boutique?{' '}
           <Link to="/register" className="font-bold text-forest underline-offset-4 hover:underline">
             Create an account
           </Link>

@@ -1,85 +1,99 @@
-import pg from 'pg';
+import { MongoClient } from 'mongodb';
 import { env } from './env.js';
 
-const { Pool } = pg;
+let client;
+let db;
+let transactionsSupported = false;
 
-let pool;
-
-function connectionString() {
-  try {
-    const value = new URL(env.databaseUrl);
-
-    // sslmode is handled by the ssl option below so both pooler and direct
-    // connections behave the same way.
-    value.searchParams.delete('sslmode');
-
-    return value.toString();
-  } catch {
-    return env.databaseUrl;
+export function getClient() {
+  if (!client) {
+    client = new MongoClient(env.mongodbUri, {
+      maxPoolSize: Number(process.env.MONGODB_POOL_MAX || 10),
+      serverSelectionTimeoutMS: 10000,
+      connectTimeoutMS: 10000,
+    });
   }
+
+  return client;
 }
 
-export function getPool() {
-  if (!pool) {
-    pool = new Pool({
-      connectionString: connectionString(),
-      ssl: env.databaseSsl ? { rejectUnauthorized: false } : undefined,
-      max: Number(process.env.DATABASE_POOL_MAX || 10),
-      idleTimeoutMillis: 30000,
-      connectionTimeoutMillis: 10000,
-    });
-
-    pool.on('error', (error) => {
-      console.error('Unexpected database pool error', error);
-    });
+export function getDb() {
+  if (!db) {
+    db = getClient().db(env.mongodbDb || undefined);
   }
 
-  return pool;
+  return db;
+}
+
+export function collection(name) {
+  return getDb().collection(name);
+}
+
+// Sessions (multi-document transactions) need a replica set or a sharded
+// cluster. A standalone server, which is what a local Compass connection
+// usually points at, runs the handler without a transaction.
+async function detectTransactions() {
+  try {
+    const hello = await getDb().admin().command({ hello: 1 });
+    return Boolean(hello.setName) || hello.msg === 'isdbgrid';
+  } catch {
+    return false;
+  }
 }
 
 export async function connectDB() {
-  const client = await getPool().connect();
+  await getClient().connect();
+  await getDb().command({ ping: 1 });
+  transactionsSupported = await detectTransactions();
 
-  try {
-    await client.query('select current_database() as name');
-  } finally {
-    client.release();
+  if (!transactionsSupported && !env.isTest) {
+    console.warn(
+      'MongoDB is running without transactions (standalone server). Order writes are not atomic.',
+    );
   }
 
-  return getPool();
+  return getDb();
 }
 
 export async function disconnectDB() {
-  if (pool) {
-    const activePool = pool;
-    pool = undefined;
-    await activePool.end();
+  if (client) {
+    const activeClient = client;
+    client = undefined;
+    db = undefined;
+    transactionsSupported = false;
+    await activeClient.close();
   }
 }
 
-export function query(text, params, client = getPool()) {
-  return client.query(text, params);
+export function sessionOptions(session) {
+  return session ? { session } : {};
 }
 
 export async function withTransaction(handler) {
-  const client = await getPool().connect();
+  if (!transactionsSupported) {
+    return handler(null);
+  }
+
+  const session = getClient().startSession();
 
   try {
-    await client.query('begin');
-    const result = await handler(client);
-    await client.query('commit');
+    session.startTransaction();
+    const result = await handler(session);
+    await session.commitTransaction();
     return result;
   } catch (error) {
-    await client.query('rollback');
+    if (session.inTransaction()) {
+      await session.abortTransaction();
+    }
     throw error;
   } finally {
-    client.release();
+    await session.endSession();
   }
 }
 
 export async function isDatabaseHealthy() {
   try {
-    await getPool().query('select 1');
+    await getDb().command({ ping: 1 });
     return true;
   } catch {
     return false;

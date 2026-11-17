@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { body } from 'express-validator';
 import {
+  deleteCustomer,
   getCustomer,
   listCustomers,
   updateCustomer,
@@ -19,5 +20,6 @@ router.use(protect, authorize('admin'));
 router.get('/', listCustomers);
 router.get('/:id', getCustomer);
 router.patch('/:id', updateValidation, validate, updateCustomer);
+router.delete('/:id', deleteCustomer);
 
 export default router;

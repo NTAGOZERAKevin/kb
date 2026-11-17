@@ -2,6 +2,7 @@ import { env } from '../config/env.js';
 import { User } from '../models/user.model.js';
 import { verifyAccessToken } from '../services/token.service.js';
 import { ApiError } from '../utils/ApiError.js';
+import { ADMIN_ROLES } from '../utils/roles.js';
 
 function getRequestToken(req) {
   const authorization = req.get('authorization');
@@ -67,8 +68,13 @@ export async function optionalProtect(req, _res, next) {
 }
 
 export function authorize(...roles) {
+  // Allowing the dashboard means allowing both the owner and their admins.
+  const allowed = new Set(
+    roles.flatMap((role) => (role === 'admin' ? ADMIN_ROLES : [role])),
+  );
+
   return function authorizeRoles(req, _res, next) {
-    if (!req.user || !roles.includes(req.user.role)) {
+    if (!req.user || !allowed.has(req.user.role)) {
       next(new ApiError(403, 'You do not have permission to perform this action'));
       return;
     }

@@ -1,14 +1,21 @@
 import app from './app.js';
 import { connectDB, disconnectDB } from './config/db.js';
 import { env } from './config/env.js';
+import { User } from './models/user.model.js';
 
 let server;
 
 async function startServer() {
   await connectDB();
 
+  const owner = await User.ensureOwner();
+
+  if (owner) {
+    console.info(`Site owner: ${owner.email}`);
+  }
+
   server = app.listen(env.port, () => {
-    console.info(`Beauty Oil Market API listening on port ${env.port}`);
+    console.info(`Sharon Glow Boutique API listening on port ${env.port}`);
   });
 
   const shutdown = async (signal) => {

@@ -14,8 +14,11 @@ export function Footer() {
               Small-batch botanical oils made to bring out your natural glow, without
               compromise.
             </p>
-            <p className="mt-6 font-display text-2xl italic text-gold/90">
-              Glow, the natural way.
+            <p className="mt-6 font-script text-3xl leading-snug text-gold/90">
+              Your beauty, our priority.
+            </p>
+            <p className="mt-4 text-[10px] font-bold uppercase tracking-[0.22em] text-ivory/35">
+              Premium oils &middot; Perfumes &middot; Self-care
             </p>
           </div>
 

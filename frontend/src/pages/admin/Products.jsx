@@ -83,6 +83,26 @@ export default function AdminProducts() {
     };
   }, [reloadKey]);
 
+  useEffect(() => {
+    if (!isFormOpen) {
+      return undefined;
+    }
+
+    function handleEscape(event) {
+      if (event.key === 'Escape') {
+        setIsFormOpen(false);
+      }
+    }
+
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', handleEscape);
+
+    return () => {
+      document.body.style.overflow = '';
+      window.removeEventListener('keydown', handleEscape);
+    };
+  }, [isFormOpen]);
+
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase();
     if (!term) {
@@ -248,7 +268,7 @@ export default function AdminProducts() {
           {filtered.map((product, index) => (
             <article
               key={product._id}
-              className="group overflow-hidden rounded-[1.75rem] border border-forest/10 bg-card shadow-[0_20px_60px_-50px_rgba(14,42,35,0.6)] transition duration-500 hover:-translate-y-1 hover:shadow-[0_28px_70px_-40px_rgba(14,42,35,0.5)]"
+              className="group overflow-hidden rounded-[1.75rem] border border-forest/10 bg-card shadow-[0_20px_60px_-50px_rgba(34,4,33,0.6)] transition duration-500 hover:-translate-y-1 hover:shadow-[0_28px_70px_-40px_rgba(34,4,33,0.5)]"
               style={{ animation: `fade-up 0.6s cubic-bezier(0.22,1,0.36,1) ${index * 50}ms both` }}
             >
               <div className="relative aspect-[16/10] overflow-hidden bg-sand">
@@ -325,19 +345,19 @@ export default function AdminProducts() {
       {isFormOpen && (
         <div className="fixed inset-0 z-50 grid place-items-center bg-forest-dark/55 p-4 backdrop-blur-sm">
           <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-[2rem] bg-surface p-6 shadow-2xl sm:p-8">
-            <div className="flex items-start justify-between gap-4">
-              <div>
+            <div className="flex items-start justify-between gap-2 sm:gap-4">
+              <div className="min-w-0">
                 <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-clay">
                   {editing ? 'Edit product' : 'New product'}
                 </p>
-                <h2 className="mt-2 font-display text-3xl font-medium text-forest">
+                <h2 className="mt-2 break-words font-display text-2xl font-medium leading-tight text-forest sm:text-3xl">
                   {editing ? editing.name : 'Add to the collection'}
                 </h2>
               </div>
               <button
                 type="button"
                 onClick={() => setIsFormOpen(false)}
-                className="grid size-9 place-items-center rounded-full border border-forest/15 text-forest/50 transition hover:text-forest"
+                className="grid size-9 shrink-0 place-items-center rounded-full border border-forest/15 text-forest/50 transition hover:text-forest"
                 aria-label="Close form"
               >
                 <X className="size-4" />

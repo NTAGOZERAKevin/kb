@@ -6,8 +6,8 @@ const baseClasses =
 
 const variants = {
   primary:
-    'bg-forest text-ivory shadow-[0_12px_30px_-16px_rgba(23,59,50,0.9)] hover:-translate-y-0.5 hover:bg-forest-light',
-  gold: 'bg-gold text-forest-dark shadow-[0_12px_30px_-16px_rgba(199,164,107,0.9)] hover:-translate-y-0.5 hover:bg-gold-light',
+    'bg-forest text-ivory shadow-[0_12px_30px_-16px_rgba(34,4,33,0.9)] hover:-translate-y-0.5 hover:bg-forest-light',
+  gold: 'bg-gold text-forest-dark shadow-[0_12px_30px_-16px_rgba(217,166,60,0.9)] hover:-translate-y-0.5 hover:bg-gold-light',
   outline:
     'border border-forest/25 bg-transparent text-forest hover:border-forest hover:bg-forest hover:text-ivory',
   light:

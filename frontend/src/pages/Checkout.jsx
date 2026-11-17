@@ -177,7 +177,7 @@ export default function Checkout() {
               <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-clay">
                 {paymentInfo.provider} reference
               </p>
-              <p className="mt-2 font-mono text-lg font-bold tracking-wider text-forest">
+              <p className="mt-2 break-all font-mono text-base font-bold tracking-wider text-forest sm:text-lg">
                 {paymentInfo.reference}
               </p>
               <p className="mt-3 text-xs leading-6 text-ink/60">{paymentInfo.instructions}</p>
