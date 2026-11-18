@@ -11,6 +11,7 @@ import {
   ShieldCheck,
   ShoppingCart,
   Store,
+  Truck,
   Users,
   X,
 } from 'lucide-react';
@@ -24,6 +25,7 @@ const navigation = [
   { to: '/admin', labelKey: 'nav.dashboard', icon: LayoutDashboard, end: true },
   { to: '/admin/products', labelKey: 'nav.products', icon: Package },
   { to: '/admin/orders', labelKey: 'nav.orders', icon: ShoppingCart },
+  { to: '/admin/delivery', labelKey: 'nav.delivery', icon: Truck },
   { to: '/admin/customers', labelKey: 'nav.customers', icon: Users },
   { to: '/admin/team', labelKey: 'nav.team', icon: ShieldCheck },
   { to: '/admin/settings', labelKey: 'nav.settings', icon: Settings },
@@ -50,8 +52,11 @@ export function AdminLayout() {
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
 
   const isSiteOwner = isOwner(user);
-  // Admins run the shop, but only the owner may open the team access page.
-  const visibleNavigation = navigation.filter((item) => item.to !== '/admin/team' || isSiteOwner);
+  // Admins run the shop, but only the owner may manage team access and delivery pricing.
+  const ownerOnlyPages = ['/admin/team', '/admin/delivery'];
+  const visibleNavigation = navigation.filter(
+    (item) => !ownerOnlyPages.includes(item.to) || isSiteOwner,
+  );
 
   useEffect(() => {
     const timer = setInterval(() => setClock(new Date()), 1000);

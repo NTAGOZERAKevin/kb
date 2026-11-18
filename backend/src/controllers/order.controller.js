@@ -1,4 +1,5 @@
 import { withTransaction } from '../config/db.js';
+import { DeliveryZone } from '../models/delivery.model.js';
 import { Order, ORDER_STATUSES } from '../models/order.model.js';
 import { Product } from '../models/product.model.js';
 import { recordActivity } from '../services/activityLog.service.js';
@@ -13,7 +14,7 @@ import { asyncHandler } from '../utils/asyncHandler.js';
 import { isAdmin } from '../utils/roles.js';
 
 const FREE_DELIVERY_THRESHOLD = 50000;
-const DELIVERY_FEE = 3000;
+const DEFAULT_SHIPPING_METHOD = 'same_day';
 
 function parsePagination(query) {
   const page = Math.max(1, Number.parseInt(query.page, 10) || 1);
@@ -30,7 +31,7 @@ function isOwner(order, user) {
 }
 
 export const createOrder = asyncHandler(async (req, res) => {
-  const { items, customer, shippingAddress, paymentMethod, notes } = req.body;
+  const { items, customer, shippingAddress, shippingMethod, paymentMethod, notes } = req.body;
 
   if (!Array.isArray(items) || items.length === 0) {
     throw new ApiError(422, 'Your cart is empty');
@@ -67,7 +68,24 @@ export const createOrder = asyncHandler(async (req, res) => {
   }
 
   const subtotal = orderItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const deliveryFee = subtotal >= FREE_DELIVERY_THRESHOLD ? 0 : DELIVERY_FEE;
+  const deliveryLocations = await DeliveryZone.list();
+  const selectedLocation =
+    deliveryLocations.find((location) => location.value === shippingMethod) ??
+    deliveryLocations.find((location) => location.value === DEFAULT_SHIPPING_METHOD) ??
+    deliveryLocations[0];
+
+  if (!selectedLocation) {
+    throw new ApiError(422, 'Delivery is not available right now. Please try again shortly.');
+  }
+
+  const selectedShippingMethod = selectedLocation.value;
+  const itemCount = orderItems.reduce((sum, item) => sum + item.quantity, 0);
+
+  if (selectedShippingMethod === 'express' && itemCount > 4) {
+    throw new ApiError(422, 'Express delivery is limited to 4 items. Choose another shipping method.');
+  }
+
+  const deliveryFee = subtotal >= FREE_DELIVERY_THRESHOLD ? 0 : selectedLocation.fee;
 
   const order = await withTransaction(async (client) => {
     for (const item of orderItems) {
@@ -94,6 +112,7 @@ export const createOrder = asyncHandler(async (req, res) => {
           phone: customer?.phone || req.user.phone,
         },
         shippingAddress,
+        shippingMethod: selectedShippingMethod,
         paymentMethod: paymentMethod || 'mtn_momo',
         subtotal,
         deliveryFee,

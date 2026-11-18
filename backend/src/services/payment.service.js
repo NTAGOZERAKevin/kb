@@ -15,6 +15,12 @@ const providers = {
     instructions:
       'Open Airtel Money, choose Pay Bill, and use the reference shown below. Our team confirms your payment shortly.',
   },
+  pesapal: {
+    label: 'Pesapal',
+    prefix: 'PESAPAL',
+    instructions:
+      'You will be redirected to Pesapal to complete your purchase. Use the reference shown below if our team follows up by phone.',
+  },
   card: {
     label: 'Card payment',
     prefix: 'CARD',

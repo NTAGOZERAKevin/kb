@@ -3,6 +3,7 @@ import { ChevronDown, ChevronLeft, ChevronRight, Search } from 'lucide-react';
 import { Alert } from '../../components/ui/Alert.jsx';
 import { Reveal } from '../../components/ui/Reveal.jsx';
 import { StatusBadge } from '../../components/ui/StatusBadge.jsx';
+import { shippingMethodLabel } from '../../data/shippingMethods.js';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle.js';
 import { orderService } from '../../services/store.service.js';
 import { formatCurrency } from '../../utils/formatCurrency.js';
@@ -322,6 +323,12 @@ function OrderRow({
                   {order.shippingAddress.country}
                   <br />
                   {order.customer.phone || 'No phone provided'}
+                </p>
+                <p className="mt-3 rounded-xl bg-card p-3 text-xs text-ink/60">
+                  <span className="font-bold uppercase tracking-[0.12em] text-ink/40">
+                    Shipping method:{' '}
+                  </span>
+                  {shippingMethodLabel(order.shippingMethod)}
                 </p>
                 {order.notes && (
                   <p className="mt-3 rounded-xl bg-card p-3 text-xs text-ink/50">

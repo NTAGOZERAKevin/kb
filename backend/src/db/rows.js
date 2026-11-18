@@ -86,6 +86,7 @@ export function mapOrder(document, { user } = {}) {
     items: document.items ?? [],
     customer: document.customer,
     shippingAddress: document.shippingAddress,
+    ...(document.shippingMethod ? { shippingMethod: document.shippingMethod } : {}),
     paymentMethod: document.paymentMethod,
     paymentStatus: document.paymentStatus,
     ...(document.paymentReference ? { paymentReference: document.paymentReference } : {}),
@@ -96,6 +97,25 @@ export function mapOrder(document, { user } = {}) {
     total: Number(document.total),
     ...(document.notes ? { notes: document.notes } : {}),
     statusHistory: document.statusHistory ?? [],
+    createdAt: document.createdAt,
+    updatedAt: document.updatedAt,
+  };
+}
+
+export function mapDeliveryZone(document) {
+  if (!document) {
+    return null;
+  }
+
+  return {
+    _id: document._id,
+    value: document.value,
+    label: document.label,
+    areas: document.areas ?? '',
+    eta: document.eta ?? '',
+    fee: Number(document.fee),
+    isActive: document.isActive,
+    sortOrder: document.sortOrder ?? 0,
     createdAt: document.createdAt,
     updatedAt: document.updatedAt,
   };

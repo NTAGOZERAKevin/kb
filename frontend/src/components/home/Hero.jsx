@@ -3,6 +3,8 @@ import { AnimatedNumber } from '../ui/AnimatedNumber.jsx';
 import { Button } from '../ui/Button.jsx';
 import { Marquee } from '../ui/Marquee.jsx';
 import { useTilt } from '../../hooks/useTilt.js';
+import { siteConfig } from '../../config/site.js';
+import { SocialIcon } from '../ui/SocialIcon.jsx';
 
 const headline = [
   { text: 'Your', delay: 40 },
@@ -23,8 +25,6 @@ const stats = [
   { value: 4.9, decimals: 1, suffix: '/5', label: 'Average rating' },
   { value: 100, suffix: '%', label: 'Botanical oils' },
 ];
-
-const avatars = ['CM', 'DU', 'AK', 'GN'];
 
 const ticker = [
   'Cold-pressed botanicals',
@@ -54,7 +54,7 @@ export function Hero() {
             Rooted in nature · Kigali, Rwanda
           </p>
 
-          <h1 className="mt-7 max-w-2xl font-display text-[2.35rem] font-medium leading-[0.98] tracking-[-0.02em] sm:text-6xl lg:text-[5.2rem]">
+          <h1 className="mt-7 max-w-2xl font-display text-[2rem] font-medium leading-[1.08] tracking-[-0.01em] sm:text-[3.25rem] lg:text-[4rem]">
             <span className="flex flex-wrap items-baseline gap-x-[0.28em] gap-y-1">
               {headline.map((word) => (
                 <span
@@ -65,15 +65,12 @@ export function Hero() {
                   {word.text}
                 </span>
               ))}
-              <span
-                className="word-in italic text-gold text-shimmer"
-                style={{ animationDelay: '390ms' }}
-              >
+              <span className="word-in italic text-gold" style={{ animationDelay: '390ms' }}>
                 glow.
               </span>
             </span>
             <span
-              className="mt-1 block word-in font-script text-[0.62em] font-normal not-italic leading-tight text-gold-light sm:text-[0.82em]"
+              className="mt-2 block word-in font-display text-[0.42em] font-normal italic leading-tight text-gold"
               style={{ animationDelay: '470ms' }}
             >
               Your beauty, our priority.
@@ -97,15 +94,18 @@ export function Hero() {
           </div>
 
           <div className="mt-9 flex flex-wrap items-center gap-x-6 gap-y-4">
-            <div className="flex -space-x-1.5">
-              {avatars.map((initials, index) => (
-                <span
-                  key={initials}
-                  className="grid size-8 place-items-center rounded-full border-2 border-forest bg-gradient-to-br from-gold to-clay text-[9px] font-bold text-forest-dark transition duration-300 hover:-translate-y-1"
-                  style={{ zIndex: avatars.length - index }}
+            <div className="flex items-center gap-2">
+              {siteConfig.socials.map((social) => (
+                <a
+                  key={social.key}
+                  href={social.href}
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label={`${siteConfig.name} on ${social.label}`}
+                  className="block rounded-[28%] shadow-soft transition duration-300 hover:-translate-y-1 hover:brightness-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold"
                 >
-                  {initials}
-                </span>
+                  <SocialIcon name={social.key} className="size-11" />
+                </a>
               ))}
             </div>
             <div>
@@ -116,7 +116,7 @@ export function Hero() {
                 <span className="ml-2 text-xs font-semibold text-ivory/80">4.9 / 5</span>
               </div>
               <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.16em] text-ivory/45">
-                2,400+ happy rituals and counting
+                See every product on our socials
               </p>
             </div>
           </div>

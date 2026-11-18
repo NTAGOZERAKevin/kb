@@ -1,19 +1,43 @@
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Minus, Plus, ShoppingBag, Trash2, Truck } from 'lucide-react';
 import { Button } from '../components/ui/Button.jsx';
 import { Reveal } from '../components/ui/Reveal.jsx';
+import { FREE_DELIVERY_THRESHOLD, SHIPPING_METHODS } from '../data/shippingMethods.js';
 import { useCart } from '../context/cart-context.js';
 import { useDocumentTitle } from '../hooks/useDocumentTitle.js';
+import { deliveryService } from '../services/store.service.js';
 import { formatCurrency } from '../utils/formatCurrency.js';
 
-const FREE_DELIVERY_THRESHOLD = 50000;
-const DELIVERY_FEE = 3000;
+const LOWEST_DELIVERY_FEE = Math.min(...SHIPPING_METHODS.map((method) => method.fee));
 
 export default function Cart() {
   useDocumentTitle('Your Cart');
 
   const { items, subtotal, count, updateQuantity, removeItem } = useCart();
-  const deliveryFee = items.length === 0 || subtotal >= FREE_DELIVERY_THRESHOLD ? 0 : DELIVERY_FEE;
+  const [lowestDeliveryFee, setLowestDeliveryFee] = useState(LOWEST_DELIVERY_FEE);
+
+  useEffect(() => {
+    let isActive = true;
+
+    deliveryService
+      .list()
+      .then((methods) => {
+        if (isActive && methods.length > 0) {
+          setLowestDeliveryFee(Math.min(...methods.map((method) => method.fee)));
+        }
+      })
+      .catch(() => {
+        // Keep the built-in fee if the API is unavailable.
+      });
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
+
+  const deliveryFee =
+    items.length === 0 || subtotal >= FREE_DELIVERY_THRESHOLD ? 0 : lowestDeliveryFee;
   const remainingForFreeDelivery = Math.max(0, FREE_DELIVERY_THRESHOLD - subtotal);
   const progress = Math.min(100, (subtotal / FREE_DELIVERY_THRESHOLD) * 100);
 
@@ -125,7 +149,7 @@ export default function Cart() {
                   <span className="font-semibold text-ivory">{formatCurrency(subtotal)}</span>
                 </div>
                 <div className="flex items-center justify-between text-ivory/65">
-                  <span>Delivery</span>
+                  <span>Delivery from</span>
                   <span className="font-semibold text-ivory">
                     {deliveryFee === 0 ? 'Free' : formatCurrency(deliveryFee)}
                   </span>
@@ -135,7 +159,7 @@ export default function Cart() {
               <div className="mt-5 border-t border-ivory/10 pt-5">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold uppercase tracking-[0.14em] text-ivory/50">
-                    Total
+                    Estimated total
                   </span>
                   <span className="font-display text-3xl font-semibold text-gold">
                     {formatCurrency(subtotal + deliveryFee)}

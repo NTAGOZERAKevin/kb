@@ -7,6 +7,7 @@ import { HomeCta } from '../components/home/HomeCta.jsx';
 import { ReviewsSection } from '../components/home/ReviewsSection.jsx';
 import { RitualFinder } from '../components/home/RitualFinder.jsx';
 import { StorySection } from '../components/home/StorySection.jsx';
+import { VisitSection } from '../components/home/VisitSection.jsx';
 
 export default function Home() {
   useDocumentTitle('Nourish Your Natural Glow');
@@ -20,6 +21,7 @@ export default function Home() {
       <StorySection />
       <ReviewsSection />
       <FaqSection />
+      <VisitSection />
       <HomeCta />
     </>
   );

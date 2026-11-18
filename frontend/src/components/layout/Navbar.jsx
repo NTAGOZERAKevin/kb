@@ -96,7 +96,7 @@ export function Navbar() {
           aria-label="Primary navigation"
           className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-2 px-4 sm:h-20 sm:gap-4 sm:px-6 lg:px-8"
         >
-          <Logo onClick={() => setIsMenuOpen(false)} />
+          <Logo size="nav" framed onClick={() => setIsMenuOpen(false)} />
 
           <div className="hidden items-center gap-8 lg:flex">
             {navigation.map((item) => (

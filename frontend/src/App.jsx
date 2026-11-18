@@ -26,6 +26,7 @@ const Dashboard = lazy(() => import('./pages/admin/Dashboard.jsx'));
 const AdminProducts = lazy(() => import('./pages/admin/Products.jsx'));
 const AdminOrders = lazy(() => import('./pages/admin/Orders.jsx'));
 const AdminCustomers = lazy(() => import('./pages/admin/Customers.jsx'));
+const AdminDelivery = lazy(() => import('./pages/admin/Delivery.jsx'));
 const AdminTeam = lazy(() => import('./pages/admin/Team.jsx'));
 const AdminSettings = lazy(() => import('./pages/admin/Settings.jsx'));
 
@@ -63,6 +64,14 @@ export default function App() {
           <Route path="products" element={<AdminProducts />} />
           <Route path="orders" element={<AdminOrders />} />
           <Route path="customers" element={<AdminCustomers />} />
+          <Route
+            path="delivery"
+            element={
+              <OwnerRoute>
+                <AdminDelivery />
+              </OwnerRoute>
+            }
+          />
           <Route
             path="team"
             element={

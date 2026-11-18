@@ -1,37 +1,44 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  Banknote,
+  Building2,
+  Car,
   CheckCircle2,
   CreditCard,
   Lock,
   MapPin,
+  Mountain,
   Package,
-  Smartphone,
-  Wallet,
+  ShieldCheck,
+  Truck,
+  Zap,
 } from 'lucide-react';
 import { Alert } from '../components/ui/Alert.jsx';
 import { Button } from '../components/ui/Button.jsx';
 import { InputField } from '../components/ui/InputField.jsx';
 import { Reveal } from '../components/ui/Reveal.jsx';
+import { SelectMenu } from '../components/ui/SelectMenu.jsx';
+import { PAYMENT_OPTIONS, renderPaymentOption } from '../components/PaymentOptions.jsx';
+import { PaymentGuide } from '../components/PaymentGuide.jsx';
+import {
+  FREE_DELIVERY_THRESHOLD,
+  SHIPPING_METHODS,
+  shippingMethodLabel,
+} from '../data/shippingMethods.js';
 import { useAuth } from '../context/auth-context.js';
 import { useCart } from '../context/cart-context.js';
 import { useDocumentTitle } from '../hooks/useDocumentTitle.js';
-import { orderService } from '../services/store.service.js';
+import { deliveryService, orderService } from '../services/store.service.js';
 import { formatCurrency } from '../utils/formatCurrency.js';
 import { getErrorMessage } from '../utils/getErrorMessage.js';
 
-const paymentMethods = [
-  { value: 'mtn_momo', label: 'MTN MoMo', hint: 'Pay from your MTN wallet', icon: Smartphone },
-  { value: 'airtel_money', label: 'Airtel Money', hint: 'Pay from your Airtel wallet', icon: Wallet },
-  { value: 'card', label: 'Card payment', hint: 'Visa or Mastercard', icon: CreditCard },
-  {
-    value: 'cash_on_delivery',
-    label: 'Cash on delivery',
-    hint: 'Pay when your oils arrive',
-    icon: Banknote,
-  },
-];
+const shippingIcons = {
+  same_day: Truck,
+  uptown: Building2,
+  express: Zap,
+  up_country: Mountain,
+  deluxe: Car,
+};
 
 export default function Checkout() {
   useDocumentTitle('Checkout');
@@ -49,7 +56,9 @@ export default function Checkout() {
     country: user?.address?.country || 'Rwanda',
     notes: '',
   });
-  const [paymentMethod, setPaymentMethod] = useState('mtn_momo');
+  const [shippingMethod, setShippingMethod] = useState('same_day');
+  const [deliveryMethods, setDeliveryMethods] = useState(SHIPPING_METHODS);
+  const [paymentMethod, setPaymentMethod] = useState('');
   const [fieldErrors, setFieldErrors] = useState({});
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -58,8 +67,51 @@ export default function Checkout() {
   const [isPaying, setIsPaying] = useState(false);
   const [paymentError, setPaymentError] = useState('');
 
-  const deliveryFee = subtotal >= 50000 ? 0 : 3000;
+  const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
+  const selectedShipping =
+    deliveryMethods.find((method) => method.value === shippingMethod) ?? deliveryMethods[0];
+  const freeDelivery = subtotal >= FREE_DELIVERY_THRESHOLD;
+  const deliveryFee = freeDelivery ? 0 : (selectedShipping?.fee ?? 0);
   const total = subtotal + deliveryFee;
+
+  const shippingOptions = deliveryMethods.map((method) => {
+    const unavailable = method.value === 'express' && itemCount > 4;
+
+    return {
+      value: method.value,
+      label: method.label,
+      description: unavailable ? 'Unavailable for more than 4 items' : method.areas,
+      meta: method.eta,
+      price: freeDelivery ? 'Free' : formatCurrency(method.fee),
+      originalPrice: freeDelivery ? formatCurrency(method.fee) : null,
+      icon: shippingIcons[method.value] ?? Truck,
+      disabled: unavailable,
+    };
+  });
+
+  useEffect(() => {
+    let isActive = true;
+
+    deliveryService
+      .list()
+      .then((methods) => {
+        if (!isActive || methods.length === 0) {
+          return;
+        }
+
+        setDeliveryMethods(methods);
+        setShippingMethod((current) =>
+          methods.some((method) => method.value === current) ? current : methods[0].value,
+        );
+      })
+      .catch(() => {
+        // Keep the built-in locations if the API is unavailable.
+      });
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
 
   function handleChange(event) {
     const { name, value } = event.target;
@@ -69,6 +121,15 @@ export default function Checkout() {
 
   async function handleSubmit(event) {
     event.preventDefault();
+
+    if (!paymentMethod) {
+      setFieldErrors((current) => ({
+        ...current,
+        paymentMethod: 'Choose how you would like to pay.',
+      }));
+      return;
+    }
+
     setIsSubmitting(true);
     setError('');
     setFieldErrors({});
@@ -83,6 +144,7 @@ export default function Checkout() {
           district: form.district,
           country: form.country,
         },
+        shippingMethod,
         paymentMethod,
         notes: form.notes,
       });
@@ -117,9 +179,10 @@ export default function Checkout() {
   }
 
   if (placedOrder) {
-    const placedPayment = paymentMethods.find(
+    const placedPayment = PAYMENT_OPTIONS.find(
       (method) => method.value === placedOrder.paymentMethod,
     );
+    const placedShippingLabel = shippingMethodLabel(placedOrder.shippingMethod);
 
     return (
       <section className="mx-auto max-w-2xl px-4 py-20 text-center sm:py-28">
@@ -145,6 +208,10 @@ export default function Checkout() {
           <div className="mt-3 flex items-center justify-between text-sm">
             <span className="text-ink/45">Total</span>
             <span className="font-bold text-forest">{formatCurrency(placedOrder.total)}</span>
+          </div>
+          <div className="mt-3 flex items-center justify-between text-sm">
+            <span className="text-ink/45">Delivery method</span>
+            <span className="font-bold text-forest">{placedShippingLabel}</span>
           </div>
           <div className="mt-3 flex items-center justify-between text-sm">
             <span className="text-ink/45">Payment</span>
@@ -339,45 +406,84 @@ export default function Checkout() {
               </label>
             </Reveal>
 
-            <Reveal delay={100} className="rounded-[2rem] border border-forest/10 bg-surface p-6 sm:p-8">
+            <Reveal
+              delay={80}
+              className="relative z-30 rounded-[2rem] border border-forest/10 bg-surface p-6 sm:p-8"
+            >
+              <h2 className="flex items-center gap-2 font-display text-2xl font-medium text-forest">
+                <Truck className="size-5 text-clay" aria-hidden="true" />
+                Shipping method
+              </h2>
+              <p className="mt-2 max-w-md text-xs leading-6 text-ink/45">
+                Choose how you want your oils delivered. Availability and fees update your order
+                summary instantly.
+              </p>
+
+              {fieldErrors.shippingMethod && (
+                <div className="mt-4">
+                  <Alert>{fieldErrors.shippingMethod}</Alert>
+                </div>
+              )}
+
+              <div className="mt-6">
+                <SelectMenu
+                  id="checkout-shipping-method"
+                  value={shippingMethod}
+                  onChange={setShippingMethod}
+                  options={shippingOptions}
+                  ariaLabel="Delivery location and shipping method"
+                  placeholder="Select your delivery location"
+                />
+              </div>
+
+              <p className="mt-4 rounded-2xl bg-sand/40 px-4 py-3 text-[11px] leading-5 text-ink/50">
+                Delivery is free on orders over {formatCurrency(FREE_DELIVERY_THRESHOLD)} — you pay
+                nothing for delivery. Express delivery is limited to 4 items per order.
+              </p>
+            </Reveal>
+
+            <Reveal
+              delay={100}
+              className="relative z-20 rounded-[2rem] border border-forest/10 bg-surface p-6 sm:p-8"
+            >
               <h2 className="flex items-center gap-2 font-display text-2xl font-medium text-forest">
                 <CreditCard className="size-5 text-clay" aria-hidden="true" />
-                Payment method
+                Payment
               </h2>
-              <div className="mt-6 grid gap-3 sm:grid-cols-2">
-                {paymentMethods.map(({ value, label, hint, icon: Icon }) => {
-                  const active = paymentMethod === value;
-                  return (
-                    <button
-                      key={value}
-                      type="button"
-                      onClick={() => setPaymentMethod(value)}
-                      className={`flex items-start gap-3 rounded-2xl border p-4 text-left transition ${
-                        active
-                          ? 'border-forest bg-forest text-ivory shadow-soft'
-                          : 'border-forest/15 bg-card text-forest hover:border-forest/35'
-                      }`}
-                    >
-                      <Icon
-                        className={`mt-0.5 size-5 shrink-0 ${active ? 'text-gold' : 'text-clay'}`}
-                        aria-hidden="true"
-                      />
-                      <span>
-                        <span className="block text-sm font-bold">{label}</span>
-                        <span
-                          className={`mt-1 block text-xs ${
-                            active ? 'text-ivory/55' : 'text-ink/45'
-                          }`}
-                        >
-                          {hint}
-                        </span>
-                      </span>
-                    </button>
-                  );
-                })}
+
+              <div className="mt-3 flex items-start gap-2.5 rounded-2xl border border-forest/10 bg-sand/40 px-4 py-3">
+                <ShieldCheck className="mt-0.5 size-4 shrink-0 text-forest/55" aria-hidden="true" />
+                <p className="text-xs leading-5 text-ink/55">
+                  All transactions are secure and encrypted.
+                </p>
               </div>
-              <p className="mt-4 flex items-center gap-2 text-xs text-ink/40">
-                <Lock className="size-3.5" aria-hidden="true" />
+
+              <div className="mt-5">
+                <SelectMenu
+                  id="checkout-payment-method"
+                  value={paymentMethod}
+                  onChange={(next) => {
+                    setPaymentMethod(next);
+                    setFieldErrors((current) => ({ ...current, paymentMethod: undefined }));
+                  }}
+                  options={PAYMENT_OPTIONS}
+                  renderOption={renderPaymentOption}
+                  ariaLabel="Payment method"
+                  placeholder="Select a payment method"
+                  listClassName="grid max-h-[30rem] grid-cols-1 gap-2 sm:grid-cols-3"
+                />
+              </div>
+
+              {fieldErrors.paymentMethod && (
+                <div className="mt-3">
+                  <Alert>{fieldErrors.paymentMethod}</Alert>
+                </div>
+              )}
+
+              {paymentMethod && <PaymentGuide method={paymentMethod} amount={total} />}
+
+              <p className="mt-4 flex items-start gap-2 text-[11px] leading-5 text-ink/40">
+                <Lock className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
                 Payment is confirmed by our team after your order is placed.
               </p>
             </Reveal>
@@ -407,9 +513,14 @@ export default function Checkout() {
                   <span>Subtotal</span>
                   <span className="font-semibold text-ivory">{formatCurrency(subtotal)}</span>
                 </div>
-                <div className="flex items-center justify-between text-ivory/65">
-                  <span>Delivery</span>
-                  <span className="font-semibold text-ivory">
+                <div className="flex items-center justify-between gap-3 text-ivory/65">
+                  <span>
+                    Delivery
+                    <span className="mt-0.5 block text-[10px] uppercase tracking-[0.12em] text-ivory/35">
+                      {selectedShipping?.label}
+                    </span>
+                  </span>
+                  <span className="shrink-0 font-semibold text-ivory">
                     {deliveryFee === 0 ? 'Free' : formatCurrency(deliveryFee)}
                   </span>
                 </div>

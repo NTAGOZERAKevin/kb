@@ -9,6 +9,7 @@ import {
   listOrders,
   updateOrderStatus,
 } from '../controllers/order.controller.js';
+import { PAYMENT_METHODS } from '../models/order.model.js';
 import { authorize, protect } from '../middleware/auth.middleware.js';
 import { validate } from '../middleware/validate.middleware.js';
 
@@ -20,9 +21,13 @@ const orderValidation = [
   body('items.*.quantity').isInt({ min: 1 }).withMessage('Quantity must be at least 1'),
   body('shippingAddress.street').trim().notEmpty().withMessage('Street address is required'),
   body('shippingAddress.city').trim().notEmpty().withMessage('City is required'),
+  body('shippingMethod')
+    .trim()
+    .matches(/^[a-z0-9_]+$/)
+    .withMessage('Choose a valid shipping method'),
   body('paymentMethod')
     .optional()
-    .isIn(['mtn_momo', 'airtel_money', 'card', 'cash_on_delivery'])
+    .isIn(PAYMENT_METHODS)
     .withMessage('Choose a valid payment method'),
 ];
 

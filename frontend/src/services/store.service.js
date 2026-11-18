@@ -115,6 +115,33 @@ export const customerService = {
   },
 };
 
+export const deliveryService = {
+  async list() {
+    const response = await api.get('/delivery-methods');
+    return response.data.data.methods;
+  },
+
+  async adminList() {
+    const response = await api.get('/delivery-methods/admin/all');
+    return response.data.data.methods;
+  },
+
+  async create(payload) {
+    const response = await api.post('/delivery-methods', payload);
+    return response.data.data.method;
+  },
+
+  async update(id, payload) {
+    const response = await api.patch(`/delivery-methods/${id}`, payload);
+    return response.data.data.method;
+  },
+
+  async remove(id) {
+    const response = await api.delete(`/delivery-methods/${id}`);
+    return response.data.message;
+  },
+};
+
 export const adminService = {
   async list() {
     const response = await api.get('/admins');

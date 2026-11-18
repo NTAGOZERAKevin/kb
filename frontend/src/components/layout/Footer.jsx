@@ -42,6 +42,11 @@ export function Footer() {
                   Customer reviews
                 </a>
               </li>
+              <li>
+                <a className="transition hover:text-gold" href="/#visit">
+                  Visit the boutique
+                </a>
+              </li>
             </ul>
           </div>
 
@@ -82,9 +87,14 @@ export function Footer() {
                   {siteConfig.email}
                 </a>
               </li>
-              <li className="flex items-start gap-3">
-                <MapPin className="mt-0.5 size-4 shrink-0 text-gold" aria-hidden="true" />
-                {siteConfig.location}
+              <li>
+                <a
+                  className="flex items-start gap-3 transition hover:text-gold"
+                  href="/#visit"
+                >
+                  <MapPin className="mt-0.5 size-4 shrink-0 text-gold" aria-hidden="true" />
+                  {siteConfig.location}
+                </a>
               </li>
             </ul>
             <a

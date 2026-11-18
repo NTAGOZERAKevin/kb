@@ -140,6 +140,7 @@ export async function notifyNewOrder(order) {
       `Email: ${order.customer.email}`,
       `Total: ${total}`,
       `Payment: ${order.paymentMethod.replaceAll('_', ' ')}`,
+      `Shipping: ${order.shippingMethod?.replaceAll('_', ' ') || 'standard'}`,
       `Deliver to: ${order.shippingAddress.street}, ${order.shippingAddress.city}`,
     ].join('\n'),
     customerEmail: order.customer.email,
@@ -148,6 +149,8 @@ export async function notifyNewOrder(order) {
       orderNumber: order.orderNumber,
       customer: order.customer,
       total: order.total,
+      shippingMethod: order.shippingMethod,
+      shippingAddress: order.shippingAddress,
       items: order.items.map((item) => ({ name: item.name, quantity: item.quantity })),
     },
   });

@@ -14,8 +14,23 @@ export const ORDER_STATUSES = [
   'cancelled',
 ];
 
-export const PAYMENT_METHODS = ['mtn_momo', 'airtel_money', 'card', 'cash_on_delivery'];
+export const PAYMENT_METHODS = [
+  'mtn_momo',
+  'airtel_money',
+  'pesapal',
+  'card',
+  'cash_on_delivery',
+];
 export const PAYMENT_STATUSES = ['pending', 'paid', 'failed', 'refunded'];
+
+export const SHIPPING_METHODS = {
+  same_day: { label: 'Same Day Delivery', fee: 2000 },
+  uptown: { label: 'Uptown Delivery', fee: 2800 },
+  express: { label: 'Express Delivery', fee: 3000 },
+  up_country: { label: 'Up-Country', fee: 3000 },
+  deluxe: { label: 'Deluxe Delivery', fee: 15000 },
+};
+export const SHIPPING_METHOD_VALUES = Object.keys(SHIPPING_METHODS);
 
 function generateOrderNumber() {
   const stamp = Date.now().toString(36).toUpperCase();
@@ -63,7 +78,18 @@ async function usersById(ids) {
 
 export const Order = {
   async create(
-    { userId, items, customer, shippingAddress, paymentMethod, subtotal, deliveryFee, total, notes },
+    {
+      userId,
+      items,
+      customer,
+      shippingAddress,
+      shippingMethod,
+      paymentMethod,
+      subtotal,
+      deliveryFee,
+      total,
+      notes,
+    },
     client,
   ) {
     const now = new Date();
@@ -79,6 +105,7 @@ export const Order = {
       items,
       customer,
       shippingAddress,
+      shippingMethod,
       paymentMethod,
       paymentStatus: 'pending',
       paymentReference: null,
