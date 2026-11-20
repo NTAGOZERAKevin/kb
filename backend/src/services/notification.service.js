@@ -123,6 +123,9 @@ export async function sendNotification({
 
 export async function notifyNewOrder(order) {
   const total = currency.format(order.total);
+  const discountLine = order.discountCode
+    ? [`Discount (${order.discountCode}): -${currency.format(order.discountAmount)}`]
+    : [];
 
   return sendNotification({
     type: 'order_placed',
@@ -138,6 +141,7 @@ export async function notifyNewOrder(order) {
       `Customer: ${order.customer.name}`,
       `Phone: ${order.customer.phone || 'not provided'}`,
       `Email: ${order.customer.email}`,
+      ...discountLine,
       `Total: ${total}`,
       `Payment: ${order.paymentMethod.replaceAll('_', ' ')}`,
       `Shipping: ${order.shippingMethod?.replaceAll('_', ' ') || 'standard'}`,
@@ -149,6 +153,9 @@ export async function notifyNewOrder(order) {
       orderNumber: order.orderNumber,
       customer: order.customer,
       total: order.total,
+      ...(order.discountCode
+        ? { discountCode: order.discountCode, discountAmount: order.discountAmount }
+        : {}),
       shippingMethod: order.shippingMethod,
       shippingAddress: order.shippingAddress,
       items: order.items.map((item) => ({ name: item.name, quantity: item.quantity })),

@@ -70,6 +70,22 @@ const GUIDES = {
     ],
     note: 'All card details are handled by Pesapal on their secure page.',
   },
+  flutterwave: {
+    title: 'How to pay with Flutterwave',
+    icon: ShieldCheck,
+    details: [
+      { label: 'Gateway', value: 'Flutterwave' },
+      { label: 'Accepted', value: 'Visa · Mastercard · Mobile money' },
+      { label: 'Reference', value: siteConfig.name },
+    ],
+    steps: [
+      'Place your order to reserve your oils — you will get an order number.',
+      'Tap “Pay with Flutterwave” on the confirmation screen.',
+      'Choose card or mobile money on Flutterwave’s secure page and approve the payment.',
+      'You return here automatically and your order is confirmed the moment the payment succeeds.',
+    ],
+    note: 'Payments are verified automatically. Your card details are entered on Flutterwave’s secure page and are never stored by us.',
+  },
   cash_on_delivery: {
     title: 'Cash on delivery',
     icon: Banknote,

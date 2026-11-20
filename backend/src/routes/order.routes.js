@@ -8,6 +8,7 @@ import {
   listMyOrders,
   listOrders,
   updateOrderStatus,
+  verifyOrderPayment,
 } from '../controllers/order.controller.js';
 import { PAYMENT_METHODS } from '../models/order.model.js';
 import { authorize, protect } from '../middleware/auth.middleware.js';
@@ -29,6 +30,11 @@ const orderValidation = [
     .optional()
     .isIn(PAYMENT_METHODS)
     .withMessage('Choose a valid payment method'),
+  body('discountCode')
+    .optional({ nullable: true })
+    .trim()
+    .matches(/^[A-Za-z0-9-]{3,24}$/)
+    .withMessage('Enter a valid discount code'),
 ];
 
 router.use(protect);
@@ -39,6 +45,7 @@ router.get('/admin/all', authorize('admin'), listOrders);
 router.patch('/admin/:id/status', authorize('admin'), updateOrderStatus);
 router.patch('/admin/:id/confirm-payment', authorize('admin'), confirmOrderPayment);
 router.post('/:id/pay', initiateOrderPayment);
+router.post('/:id/verify-payment', verifyOrderPayment);
 router.get('/:id', getOrder);
 
 export default router;

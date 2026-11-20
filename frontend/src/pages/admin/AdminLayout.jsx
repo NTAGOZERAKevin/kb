@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import {
   ArrowUpRight,
+  BadgePercent,
   Bell,
   LayoutDashboard,
   LogOut,
@@ -26,6 +27,7 @@ const navigation = [
   { to: '/admin/products', labelKey: 'nav.products', icon: Package },
   { to: '/admin/orders', labelKey: 'nav.orders', icon: ShoppingCart },
   { to: '/admin/delivery', labelKey: 'nav.delivery', icon: Truck },
+  { to: '/admin/discount-codes', labelKey: 'nav.discounts', icon: BadgePercent },
   { to: '/admin/customers', labelKey: 'nav.customers', icon: Users },
   { to: '/admin/team', labelKey: 'nav.team', icon: ShieldCheck },
   { to: '/admin/settings', labelKey: 'nav.settings', icon: Settings },
@@ -52,8 +54,8 @@ export function AdminLayout() {
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
 
   const isSiteOwner = isOwner(user);
-  // Admins run the shop, but only the owner may manage team access and delivery pricing.
-  const ownerOnlyPages = ['/admin/team', '/admin/delivery'];
+  // Admins run the shop, but only the owner may manage team access, delivery pricing and discounts.
+  const ownerOnlyPages = ['/admin/team', '/admin/delivery', '/admin/discount-codes'];
   const visibleNavigation = navigation.filter(
     (item) => !ownerOnlyPages.includes(item.to) || isSiteOwner,
   );

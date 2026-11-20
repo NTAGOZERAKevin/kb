@@ -19,6 +19,7 @@ export const PAYMENT_METHODS = [
   'airtel_money',
   'pesapal',
   'card',
+  'flutterwave',
   'cash_on_delivery',
 ];
 export const PAYMENT_STATUSES = ['pending', 'paid', 'failed', 'refunded'];
@@ -87,6 +88,8 @@ export const Order = {
       paymentMethod,
       subtotal,
       deliveryFee,
+      discountCode,
+      discountAmount,
       total,
       notes,
     },
@@ -113,6 +116,8 @@ export const Order = {
       status,
       subtotal,
       deliveryFee,
+      discountCode: discountCode || null,
+      discountAmount: Number(discountAmount || 0),
       total,
       notes: notes || null,
       statusHistory,
@@ -139,6 +144,16 @@ export const Order = {
     const user = withUser ? (await usersById([document.user])).get(document.user) : undefined;
 
     return mapOrder(document, { user });
+  },
+
+  async findByPaymentReference(reference) {
+    if (!reference) {
+      return null;
+    }
+
+    const document = await orders().findOne({ paymentReference: reference });
+
+    return document ? mapOrder(document) : null;
   },
 
   async listByUser(userId, limit = 50) {

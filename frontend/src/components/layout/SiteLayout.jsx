@@ -1,5 +1,6 @@
 import { Outlet } from 'react-router-dom';
 import { BackToTop, ScrollProgress } from '../ui/ScrollProgress.jsx';
+import { SupportAssistant } from '../assistant/SupportAssistant.jsx';
 import { Footer } from './Footer.jsx';
 import { Navbar } from './Navbar.jsx';
 
@@ -19,6 +20,7 @@ export function SiteLayout() {
       </main>
       <Footer />
       <BackToTop />
+      <SupportAssistant />
     </div>
   );
 }

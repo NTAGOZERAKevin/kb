@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { ArrowRight, Package, ReceiptText } from 'lucide-react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { ArrowRight, CheckCircle2, Package, ReceiptText } from 'lucide-react';
 import { Alert } from '../components/ui/Alert.jsx';
 import { Button } from '../components/ui/Button.jsx';
 import { Reveal } from '../components/ui/Reveal.jsx';
@@ -17,6 +18,12 @@ export default function Orders() {
   const [orders, setOrders] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  const [paymentNotice, setPaymentNotice] = useState(null);
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+
+  const paymentReturnOrderId =
+    searchParams.get('payment') === 'flutterwave' ? searchParams.get('order') : null;
 
   useEffect(() => {
     let isActive = true;
@@ -44,6 +51,57 @@ export default function Orders() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!paymentReturnOrderId) {
+      return undefined;
+    }
+
+    let isActive = true;
+
+    (async () => {
+      let notice;
+
+      try {
+        const order = await orderService.verifyPayment(paymentReturnOrderId);
+        notice = {
+          tone: 'success',
+          message: `Payment received for ${order.orderNumber}. Your order is confirmed.`,
+        };
+      } catch (requestError) {
+        notice = {
+          tone: 'error',
+          message: getErrorMessage(
+            requestError,
+            'We could not confirm your Flutterwave payment yet.',
+          ),
+        };
+      }
+
+      if (!isActive) {
+        return;
+      }
+
+      setPaymentNotice(notice);
+
+      try {
+        const data = await orderService.myOrders();
+        if (isActive) {
+          setOrders(data);
+        }
+      } catch {
+        // Keep showing the orders already loaded.
+      }
+
+      if (isActive) {
+        navigate('/orders', { replace: true });
+      }
+    })();
+
+    return () => {
+      isActive = false;
+    };
+  }, [paymentReturnOrderId, navigate]);
+
   return (
     <section className="bg-sand/35 py-12 sm:py-16">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
@@ -66,6 +124,18 @@ export default function Orders() {
         </Reveal>
 
         {error && <div className="mt-6"><Alert>{error}</Alert></div>}
+
+        {paymentNotice &&
+          (paymentNotice.tone === 'success' ? (
+            <div className="mt-6 flex items-start gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm font-semibold text-emerald-700">
+              <CheckCircle2 className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+              <span>{paymentNotice.message}</span>
+            </div>
+          ) : (
+            <div className="mt-6">
+              <Alert>{paymentNotice.message}</Alert>
+            </div>
+          ))}
 
         {isLoading ? (
           <div className="mt-10 space-y-4">

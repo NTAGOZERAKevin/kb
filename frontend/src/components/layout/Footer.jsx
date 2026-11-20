@@ -1,9 +1,12 @@
 import { Link } from 'react-router-dom';
 import { ArrowUpRight, Mail, MapPin } from 'lucide-react';
 import { siteConfig } from '../../config/site.js';
+import { useAuthModal } from '../../context/auth-modal-context.js';
 import { Logo } from './Logo.jsx';
 
 export function Footer() {
+  const { openLogin, openSignup } = useAuthModal();
+
   return (
     <footer id="contact" className="bg-forest-dark text-ivory">
       <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
@@ -56,14 +59,22 @@ export function Footer() {
             </h2>
             <ul className="mt-5 space-y-3 text-sm text-ivory/70">
               <li>
-                <Link className="transition hover:text-gold" to="/login">
+                <button
+                  type="button"
+                  onClick={() => openLogin()}
+                  className="transition hover:text-gold"
+                >
                   Sign in
-                </Link>
+                </button>
               </li>
               <li>
-                <Link className="transition hover:text-gold" to="/register">
+                <button
+                  type="button"
+                  onClick={() => openSignup()}
+                  className="transition hover:text-gold"
+                >
                   Create account
-                </Link>
+                </button>
               </li>
               <li>
                 <Link className="transition hover:text-gold" to="/profile">

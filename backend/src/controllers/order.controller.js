@@ -2,13 +2,15 @@ import { withTransaction } from '../config/db.js';
 import { DeliveryZone } from '../models/delivery.model.js';
 import { Order, ORDER_STATUSES } from '../models/order.model.js';
 import { Product } from '../models/product.model.js';
+import { DiscountCode } from '../models/discountCode.model.js';
 import { recordActivity } from '../services/activityLog.service.js';
+import { resolveDiscount } from '../services/discount.service.js';
 import {
   notifyNewOrder,
   notifyOrderStatus,
   notifyPaymentConfirmed,
 } from '../services/notification.service.js';
-import { initiatePayment } from '../services/payment.service.js';
+import { initiatePayment, verifyPayment } from '../services/payment.service.js';
 import { ApiError } from '../utils/ApiError.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { isAdmin } from '../utils/roles.js';
@@ -31,7 +33,8 @@ function isOwner(order, user) {
 }
 
 export const createOrder = asyncHandler(async (req, res) => {
-  const { items, customer, shippingAddress, shippingMethod, paymentMethod, notes } = req.body;
+  const { items, customer, shippingAddress, shippingMethod, paymentMethod, notes, discountCode } =
+    req.body;
 
   if (!Array.isArray(items) || items.length === 0) {
     throw new ApiError(422, 'Your cart is empty');
@@ -86,6 +89,9 @@ export const createOrder = asyncHandler(async (req, res) => {
   }
 
   const deliveryFee = subtotal >= FREE_DELIVERY_THRESHOLD ? 0 : selectedLocation.fee;
+  const discount = await resolveDiscount(discountCode, subtotal);
+  const discountAmount = discount?.amount ?? 0;
+  const total = Math.max(0, subtotal + deliveryFee - discountAmount);
 
   const order = await withTransaction(async (client) => {
     for (const item of orderItems) {
@@ -102,6 +108,10 @@ export const createOrder = asyncHandler(async (req, res) => {
       }
     }
 
+    if (discount) {
+      await DiscountCode.incrementUsage(discount.code._id, client);
+    }
+
     return Order.create(
       {
         userId: req.user._id,
@@ -116,7 +126,9 @@ export const createOrder = asyncHandler(async (req, res) => {
         paymentMethod: paymentMethod || 'mtn_momo',
         subtotal,
         deliveryFee,
-        total: subtotal + deliveryFee,
+        discountCode: discount?.code.code ?? null,
+        discountAmount,
+        total,
         notes,
       },
       client,
@@ -245,6 +257,54 @@ export const initiateOrderPayment = asyncHandler(async (req, res) => {
     message: 'Payment initiated',
     data: { order: updatedOrder, payment },
   });
+});
+
+export const verifyOrderPayment = asyncHandler(async (req, res) => {
+  const order = await Order.findById(req.params.id);
+
+  if (!order) {
+    throw new ApiError(404, 'That order could not be found');
+  }
+
+  if (!isOwner(order, req.user) && !isAdmin(req.user)) {
+    throw new ApiError(403, 'You do not have permission to verify this payment');
+  }
+
+  if (order.paymentStatus === 'paid') {
+    return res.json({
+      success: true,
+      message: 'Payment already confirmed',
+      data: { order },
+    });
+  }
+
+  const result = await verifyPayment(order);
+
+  if (result.status !== 'successful') {
+    throw new ApiError(
+      402,
+      result.status === 'failed'
+        ? 'Flutterwave declined this payment. Please try again or choose another payment method.'
+        : 'We have not received this payment yet. If you were charged, contact us with your reference.',
+    );
+  }
+
+  const updatedOrder = await Order.confirmPayment(order._id, {
+    reference: order.paymentReference,
+  });
+
+  await recordActivity({
+    userId: req.user._id,
+    action: 'order.payment_confirmed',
+    req,
+    metadata: { orderNumber: order.orderNumber, total: order.total, provider: 'flutterwave' },
+  });
+
+  notifyPaymentConfirmed(updatedOrder).catch((error) => {
+    console.error('Failed to send payment notification', error);
+  });
+
+  res.json({ success: true, message: 'Payment confirmed', data: { order: updatedOrder } });
 });
 
 export const confirmOrderPayment = asyncHandler(async (req, res) => {

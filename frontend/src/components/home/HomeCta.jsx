@@ -1,10 +1,13 @@
 import { ArrowRight, Sparkles, Star } from 'lucide-react';
+import { useAuthModal } from '../../context/auth-modal-context.js';
 import { Button } from '../ui/Button.jsx';
 import { Reveal } from '../ui/Reveal.jsx';
 
 const avatars = ['CM', 'DU', 'AK', 'GN'];
 
 export function HomeCta() {
+  const { openSignup } = useAuthModal();
+
   return (
     <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8 lg:py-28">
       <Reveal>
@@ -48,7 +51,13 @@ export function HomeCta() {
           </p>
 
           <div className="relative mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <Button to="/register" variant="gold" size="lg" className="shine-hover">
+            <Button
+              type="button"
+              variant="gold"
+              size="lg"
+              className="shine-hover"
+              onClick={() => openSignup()}
+            >
               Create your account
               <ArrowRight className="size-4" aria-hidden="true" />
             </Button>

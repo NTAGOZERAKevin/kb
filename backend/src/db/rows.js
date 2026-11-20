@@ -94,6 +94,8 @@ export function mapOrder(document, { user } = {}) {
     status: document.status,
     subtotal: Number(document.subtotal),
     deliveryFee: Number(document.deliveryFee),
+    ...(document.discountCode ? { discountCode: document.discountCode } : {}),
+    discountAmount: Number(document.discountAmount ?? 0),
     total: Number(document.total),
     ...(document.notes ? { notes: document.notes } : {}),
     statusHistory: document.statusHistory ?? [],
@@ -116,6 +118,28 @@ export function mapDeliveryZone(document) {
     fee: Number(document.fee),
     isActive: document.isActive,
     sortOrder: document.sortOrder ?? 0,
+    createdAt: document.createdAt,
+    updatedAt: document.updatedAt,
+  };
+}
+
+export function mapDiscountCode(document) {
+  if (!document) {
+    return null;
+  }
+
+  return {
+    _id: document._id,
+    code: document.code,
+    description: document.description ?? '',
+    type: document.type,
+    value: Number(document.value),
+    minSubtotal: Number(document.minSubtotal ?? 0),
+    maxUses: document.maxUses ?? null,
+    usedCount: Number(document.usedCount ?? 0),
+    expiresAt: document.expiresAt ?? null,
+    isActive: Boolean(document.isActive),
+    ...(document.createdBy ? { createdBy: document.createdBy } : {}),
     createdAt: document.createdAt,
     updatedAt: document.updatedAt,
   };

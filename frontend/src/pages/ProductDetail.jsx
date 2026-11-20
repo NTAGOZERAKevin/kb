@@ -14,6 +14,7 @@ import { Alert } from '../components/ui/Alert.jsx';
 import { Button } from '../components/ui/Button.jsx';
 import { Reveal } from '../components/ui/Reveal.jsx';
 import { useAuth } from '../context/auth-context.js';
+import { useAuthModal } from '../context/auth-modal-context.js';
 import { useCart } from '../context/cart-context.js';
 import { useDocumentTitle } from '../hooks/useDocumentTitle.js';
 import { productService } from '../services/store.service.js';
@@ -38,6 +39,7 @@ export default function ProductDetail() {
   const { slug } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { openLogin } = useAuthModal();
   const { addItem } = useCart();
 
   const [product, setProduct] = useState(null);
@@ -369,7 +371,7 @@ export default function ProductDetail() {
                   <p className="text-sm leading-6 text-ink/55">
                     Sign in to leave a review and save your favourite oils.
                   </p>
-                  <Button to="/login" className="mt-4 w-full">
+                  <Button type="button" onClick={() => openLogin()} className="mt-4 w-full">
                     Sign in to review
                   </Button>
                 </div>

@@ -59,5 +59,22 @@ export const env = Object.freeze({
     from: process.env.SMTP_FROM || process.env.ADMIN_EMAIL,
   },
   notificationWebhookUrl: process.env.NOTIFICATION_WEBHOOK_URL,
+  assistant: {
+    apiKey: process.env.ASSISTANT_API_KEY || process.env.ZAI_API_KEY,
+    apiBase: (
+      process.env.ASSISTANT_API_BASE ||
+      process.env.ZAI_API_BASE ||
+      'https://api.z.ai/api/paas/v4'
+    ).replace(/\/+$/, ''),
+    model: process.env.ASSISTANT_MODEL || 'glm-4-flash',
+    isConfigured: Boolean(process.env.ASSISTANT_API_KEY || process.env.ZAI_API_KEY),
+  },
   paymentMode: process.env.PAYMENT_MODE || 'mock',
+  flutterwave: {
+    secretKey: process.env.FLUTTERWAVE_SECRET_KEY,
+    publicKey: process.env.FLUTTERWAVE_PUBLIC_KEY,
+    webhookHash: process.env.FLUTTERWAVE_WEBHOOK_HASH,
+    currency: process.env.FLUTTERWAVE_CURRENCY || 'RWF',
+    isConfigured: Boolean(process.env.FLUTTERWAVE_SECRET_KEY),
+  },
 });

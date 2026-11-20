@@ -86,6 +86,19 @@ function VisaLockup() {
   );
 }
 
+function FlutterwaveLockup() {
+  return (
+    <span className="flex items-center gap-1.5 text-[#0A0B2E]">
+      <svg viewBox="0 0 24 24" className="size-5 shrink-0" aria-hidden="true" focusable="false">
+        <path d="M3 3h6.4l-2.6 6.2H3Z" fill="#0A0B2E" />
+        <path d="M8.2 3H14l-2.6 6.2H5.6Z" fill="#0A0B2E" opacity="0.72" />
+        <path d="M7.6 20.9c4.6.6 9.2-1.6 11.6-5.6 1-1.7 1.5-3.5 1.5-5.3-3.2.4-6.4 2.4-8.3 5.4-.9 1.4-1.5 2.9-1.8 4.4-.4.7-1.5 1-3 1.1Z" fill="#0A0B2E" />
+      </svg>
+      <span className="text-[13px] font-extrabold lowercase tracking-tight">flutterwave</span>
+    </span>
+  );
+}
+
 const BRAND_CARDS = {
   mtn_momo: {
     tagline: 'Pay with MTN Mobile Money',
@@ -103,6 +116,14 @@ const BRAND_CARDS = {
     pillClass: 'bg-[#5E0000]/85 text-white',
     logo: <AirtelLockup />,
   },
+  flutterwave: {
+    tagline: 'Pay with card or mobile money — confirmed instantly',
+    cta: 'Flutterwave',
+    surface: 'bg-[linear-gradient(135deg,#FFE066_0%,#F8B92B_48%,#E98A00_100%)]',
+    taglineClass: 'text-[#0A0B2E]/75',
+    pillClass: 'bg-[#0A0B2E] text-white',
+    logo: <FlutterwaveLockup />,
+  },
   card: {
     tagline: 'Pay securely with Visa',
     cta: 'Visa Card',
@@ -114,6 +135,14 @@ const BRAND_CARDS = {
 };
 
 export const PAYMENT_OPTIONS = [
+  {
+    value: 'flutterwave',
+    label: 'Flutterwave',
+    description: 'Pay securely with a card or mobile money',
+    icon: CreditCard,
+    brand: 'flutterwave',
+    fullWidth: true,
+  },
   {
     value: 'mtn_momo',
     label: 'MTN Mobile Money',
@@ -171,6 +200,43 @@ export function renderPaymentOption(option, { isSelected, isActive }) {
             {isSelected && <Check className="size-3" aria-hidden="true" />}
           </span>
           <span className="mt-0.5 block text-[11px] leading-4 text-ink/45">{option.description}</span>
+        </span>
+      </span>
+    );
+  }
+
+  if (option.fullWidth) {
+    return (
+      <span
+        className={`relative flex items-center gap-3 overflow-hidden rounded-2xl p-3.5 shadow-soft transition ${card.surface} ${
+          isSelected ? 'ring-2 ring-gold ring-offset-2 ring-offset-surface' : ''
+        } ${isActive && !isSelected ? 'ring-2 ring-white/70' : ''}`}
+      >
+        <span
+          className="pointer-events-none absolute -right-8 -top-10 size-24 rounded-full bg-white/25 blur-xl"
+          aria-hidden="true"
+        />
+
+        <span className="relative shrink-0">{card.logo}</span>
+        <span className={`relative min-w-0 flex-1 text-[10px] font-semibold italic leading-4 ${card.taglineClass}`}>
+          {card.tagline}
+        </span>
+
+        <span
+          className={`relative flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1.5 text-[10px] font-bold ${card.pillClass}`}
+        >
+          <Icon className="size-3" aria-hidden="true" />
+          {card.cta}
+          <ChevronRight className="size-3 opacity-70" aria-hidden="true" />
+        </span>
+
+        <span
+          className={`relative grid size-4 shrink-0 place-items-center rounded-full transition ${
+            isSelected ? 'bg-white text-forest shadow' : 'bg-white/25 text-white/0'
+          }`}
+          aria-hidden="true"
+        >
+          <Check className="size-2.5" strokeWidth={3.5} />
         </span>
       </span>
     );

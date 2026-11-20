@@ -27,3 +27,10 @@ export const authLimiter = rateLimit({
   limit: 10,
   skipSuccessfulRequests: true,
 });
+
+// The shop assistant calls a paid model, so it gets its own tighter budget.
+export const assistantLimiter = rateLimit({
+  ...sharedOptions,
+  windowMs: 10 * 60 * 1000,
+  limit: 20,
+});

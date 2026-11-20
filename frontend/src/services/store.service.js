@@ -62,6 +62,11 @@ export const orderService = {
     return response.data.data;
   },
 
+  async verifyPayment(id) {
+    const response = await api.post(`/orders/${id}/verify-payment`);
+    return response.data.data.order;
+  },
+
   async confirmPayment(id) {
     const response = await api.patch(`/orders/admin/${id}/confirm-payment`);
     return response.data.data.order;
@@ -142,6 +147,33 @@ export const deliveryService = {
   },
 };
 
+export const discountService = {
+  async validate(code, subtotal) {
+    const response = await api.post('/discount-codes/validate', { code, subtotal });
+    return response.data.data.discount;
+  },
+
+  async adminList() {
+    const response = await api.get('/discount-codes/admin/all');
+    return response.data.data.codes;
+  },
+
+  async create(payload) {
+    const response = await api.post('/discount-codes', payload);
+    return response.data.data.code;
+  },
+
+  async update(id, payload) {
+    const response = await api.patch(`/discount-codes/${id}`, payload);
+    return response.data.data.code;
+  },
+
+  async remove(id) {
+    const response = await api.delete(`/discount-codes/${id}`);
+    return response.data.message;
+  },
+};
+
 export const adminService = {
   async list() {
     const response = await api.get('/admins');
@@ -162,6 +194,13 @@ export const adminService = {
 export const dashboardService = {
   async get() {
     const response = await api.get('/dashboard');
+    return response.data.data;
+  },
+};
+
+export const assistantService = {
+  async chat(messages) {
+    const response = await api.post('/assistant/chat', { messages }, { timeout: 35000 });
     return response.data.data;
   },
 };

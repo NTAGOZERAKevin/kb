@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { Eye, EyeOff, Lock, Mail, Phone, UserRound } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { AuthShell } from '../components/auth/AuthShell.jsx';
 import { Alert } from '../components/ui/Alert.jsx';
 import { Button } from '../components/ui/Button.jsx';
 import { InputField } from '../components/ui/InputField.jsx';
 import { useAuth } from '../context/auth-context.js';
+import { useAuthModal } from '../context/auth-modal-context.js';
 import { useDocumentTitle } from '../hooks/useDocumentTitle.js';
 import { getErrorMessage } from '../utils/getErrorMessage.js';
 
@@ -21,6 +22,7 @@ export default function Register() {
   useDocumentTitle('Create Account');
 
   const { register } = useAuth();
+  const { openLogin } = useAuthModal();
   const navigate = useNavigate();
   const [form, setForm] = useState(initialForm);
   const [fieldErrors, setFieldErrors] = useState({});
@@ -65,9 +67,13 @@ export default function Register() {
       footer={
         <>
           Already have an account?{' '}
-          <Link to="/login" className="font-bold text-forest underline-offset-4 hover:underline">
+          <button
+            type="button"
+            onClick={() => openLogin()}
+            className="font-bold text-forest underline-offset-4 hover:underline"
+          >
             Sign in
-          </Link>
+          </button>
         </>
       }
     >

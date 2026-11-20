@@ -27,6 +27,7 @@ const AdminProducts = lazy(() => import('./pages/admin/Products.jsx'));
 const AdminOrders = lazy(() => import('./pages/admin/Orders.jsx'));
 const AdminCustomers = lazy(() => import('./pages/admin/Customers.jsx'));
 const AdminDelivery = lazy(() => import('./pages/admin/Delivery.jsx'));
+const AdminDiscountCodes = lazy(() => import('./pages/admin/DiscountCodes.jsx'));
 const AdminTeam = lazy(() => import('./pages/admin/Team.jsx'));
 const AdminSettings = lazy(() => import('./pages/admin/Settings.jsx'));
 
@@ -69,6 +70,14 @@ export default function App() {
             element={
               <OwnerRoute>
                 <AdminDelivery />
+              </OwnerRoute>
+            }
+          />
+          <Route
+            path="discount-codes"
+            element={
+              <OwnerRoute>
+                <AdminDiscountCodes />
               </OwnerRoute>
             }
           />

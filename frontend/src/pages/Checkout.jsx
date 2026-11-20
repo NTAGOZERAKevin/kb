@@ -28,7 +28,7 @@ import {
 import { useAuth } from '../context/auth-context.js';
 import { useCart } from '../context/cart-context.js';
 import { useDocumentTitle } from '../hooks/useDocumentTitle.js';
-import { deliveryService, orderService } from '../services/store.service.js';
+import { deliveryService, discountService, orderService } from '../services/store.service.js';
 import { formatCurrency } from '../utils/formatCurrency.js';
 import { getErrorMessage } from '../utils/getErrorMessage.js';
 
@@ -66,13 +66,18 @@ export default function Checkout() {
   const [paymentInfo, setPaymentInfo] = useState(null);
   const [isPaying, setIsPaying] = useState(false);
   const [paymentError, setPaymentError] = useState('');
+  const [discountInput, setDiscountInput] = useState('');
+  const [appliedDiscount, setAppliedDiscount] = useState(null);
+  const [discountError, setDiscountError] = useState('');
+  const [isValidatingDiscount, setIsValidatingDiscount] = useState(false);
 
   const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
   const selectedShipping =
     deliveryMethods.find((method) => method.value === shippingMethod) ?? deliveryMethods[0];
   const freeDelivery = subtotal >= FREE_DELIVERY_THRESHOLD;
   const deliveryFee = freeDelivery ? 0 : (selectedShipping?.fee ?? 0);
-  const total = subtotal + deliveryFee;
+  const discountAmount = appliedDiscount?.amount ?? 0;
+  const total = Math.max(0, subtotal + deliveryFee - discountAmount);
 
   const shippingOptions = deliveryMethods.map((method) => {
     const unavailable = method.value === 'express' && itemCount > 4;
@@ -113,6 +118,40 @@ export default function Checkout() {
     };
   }, []);
 
+  useEffect(() => {
+    setAppliedDiscount(null);
+    setDiscountInput('');
+    setDiscountError('');
+  }, [subtotal]);
+
+  async function handleApplyDiscount() {
+    const code = discountInput.trim();
+
+    if (!code) {
+      return;
+    }
+
+    setIsValidatingDiscount(true);
+    setDiscountError('');
+
+    try {
+      const discount = await discountService.validate(code, subtotal);
+      setAppliedDiscount(discount);
+      setDiscountInput(discount.code);
+    } catch (requestError) {
+      setAppliedDiscount(null);
+      setDiscountError(getErrorMessage(requestError, 'That discount code could not be applied.'));
+    } finally {
+      setIsValidatingDiscount(false);
+    }
+  }
+
+  function handleRemoveDiscount() {
+    setAppliedDiscount(null);
+    setDiscountInput('');
+    setDiscountError('');
+  }
+
   function handleChange(event) {
     const { name, value } = event.target;
     setForm((current) => ({ ...current, [name]: value }));
@@ -147,6 +186,7 @@ export default function Checkout() {
         shippingMethod,
         paymentMethod,
         notes: form.notes,
+        discountCode: appliedDiscount?.code ?? null,
       });
       setPlacedOrder(order);
       clearCart();
@@ -169,6 +209,12 @@ export default function Checkout() {
 
     try {
       const data = await orderService.pay(placedOrder._id);
+
+      if (data.payment?.checkoutUrl) {
+        window.location.assign(data.payment.checkoutUrl);
+        return;
+      }
+
       setPaymentInfo(data.payment);
       setPlacedOrder(data.order);
     } catch (requestError) {
@@ -205,6 +251,19 @@ export default function Checkout() {
             <span className="text-ink/45">Order number</span>
             <span className="font-bold text-forest">{placedOrder.orderNumber}</span>
           </div>
+          {placedOrder.discountCode && (
+            <div className="mt-3 flex items-center justify-between text-sm">
+              <span className="text-ink/45">
+                Discount
+                <span className="mt-0.5 block text-[10px] uppercase tracking-[0.12em] text-ink/35">
+                  {placedOrder.discountCode}
+                </span>
+              </span>
+              <span className="font-bold text-emerald-700">
+                -{formatCurrency(placedOrder.discountAmount)}
+              </span>
+            </div>
+          )}
           <div className="mt-3 flex items-center justify-between text-sm">
             <span className="text-ink/45">Total</span>
             <span className="font-bold text-forest">{formatCurrency(placedOrder.total)}</span>
@@ -484,7 +543,7 @@ export default function Checkout() {
 
               <p className="mt-4 flex items-start gap-2 text-[11px] leading-5 text-ink/40">
                 <Lock className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
-                Payment is confirmed by our team after your order is placed.
+                Flutterwave payments are confirmed automatically; wallet payments are checked by our team.
               </p>
             </Reveal>
           </div>
@@ -508,6 +567,54 @@ export default function Checkout() {
                 ))}
               </ul>
 
+              <div className="mt-6 border-t border-ivory/10 pt-5">
+                <label htmlFor="discountCode" className="text-xs font-bold uppercase tracking-[0.14em] text-ivory/50">
+                  Have a discount code?
+                </label>
+                <div className="mt-2 flex gap-2">
+                  <input
+                    id="discountCode"
+                    value={discountInput}
+                    onChange={(event) => {
+                      setDiscountInput(event.target.value.toUpperCase());
+                      setDiscountError('');
+                    }}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter') {
+                        event.preventDefault();
+                        handleApplyDiscount();
+                      }
+                    }}
+                    disabled={Boolean(appliedDiscount) || isSubmitting}
+                    placeholder="Enter code"
+                    autoComplete="off"
+                    className="min-w-0 flex-1 rounded-full border border-ivory/20 bg-ivory/10 px-4 py-2 text-sm text-ivory outline-none transition placeholder:text-ivory/35 focus:border-gold disabled:opacity-50"
+                  />
+                  {appliedDiscount ? (
+                    <Button type="button" variant="light" size="sm" onClick={handleRemoveDiscount}>
+                      Remove
+                    </Button>
+                  ) : (
+                    <Button
+                      type="button"
+                      variant="light"
+                      size="sm"
+                      onClick={handleApplyDiscount}
+                      isLoading={isValidatingDiscount}
+                      disabled={!discountInput.trim() || isSubmitting}
+                    >
+                      Apply
+                    </Button>
+                  )}
+                </div>
+                {discountError && <p className="mt-2 text-xs text-red-200">{discountError}</p>}
+                {appliedDiscount && (
+                  <p className="mt-2 text-xs text-emerald-200">
+                    {appliedDiscount.code} saves you {formatCurrency(appliedDiscount.amount)}.
+                  </p>
+                )}
+              </div>
+
               <div className="mt-6 space-y-3 border-t border-ivory/10 pt-5 text-sm">
                 <div className="flex items-center justify-between text-ivory/65">
                   <span>Subtotal</span>
@@ -524,6 +631,19 @@ export default function Checkout() {
                     {deliveryFee === 0 ? 'Free' : formatCurrency(deliveryFee)}
                   </span>
                 </div>
+                {appliedDiscount && (
+                  <div className="flex items-center justify-between gap-3 text-ivory/65">
+                    <span>
+                      Discount
+                      <span className="mt-0.5 block text-[10px] uppercase tracking-[0.12em] text-ivory/35">
+                        {appliedDiscount.code}
+                      </span>
+                    </span>
+                    <span className="shrink-0 font-semibold text-emerald-200">
+                      -{formatCurrency(discountAmount)}
+                    </span>
+                  </div>
+                )}
               </div>
 
               <div className="mt-5 flex items-center justify-between border-t border-ivory/10 pt-5">
